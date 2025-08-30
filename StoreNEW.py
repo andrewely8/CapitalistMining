@@ -937,6 +937,84 @@ class playerLevel3(pygame.sprite.Sprite):
             else:
                 self.image = minerRightWalk2
 
+class Level6FloorBlock(pygame.sprite.Sprite):
+    def __init__(self,x,y):
+        super().__init__()
+        self.image = pygame.Surface((32,32))
+        self.image.fill((255,255,255))
+        self.rect = self.image.get_rect(topleft=(x,y))
+
+    def update(self, playerX, playerSpeed, direction):
+        self.rect.x += (playerSpeed-1)*direction
+        
+   
+
+class Level6Player(pygame.sprite.Sprite):
+    def __init__(self,x,y):
+        super().__init__()
+        self.image = minerIdle
+        self.rect = self.image.get_rect(topleft=(x,y))
+        self.direction = 0   #  0:idle   1:left   2:right
+
+    def update(self):
+        pass
+
+class Level6Enemy1(pygame.sprite.Sprite):
+    def __init__(self,x,y):
+        super().__init__()
+        self.image = pygame.Surface((32,32))
+        self.rect = self.image.get_rect(topleft=(x,y))
+
+    def update(self):
+        self.rect.x -= 2
+
+class Level6Enemy2(pygame.sprite.Sprite):
+    def __init__(self,x,y):
+        super().__init__()
+        self.image = pygame.Surface((32,32))
+        self.rect = self.image.get_rect(topleft=(x,y))
+        self.topRange = self.rect.y - 150
+        self.bottomRange = self.rect.y + 150
+        self.direction = 1
+        self.collidedWall = False
+
+    def update(self, playerX, playerSpeed, direction):
+
+        if self.rect.y == self.topRange:
+            self.direction = 1
+        if self.rect.y == self.bottomRange:
+            self.direction = -1
+        if self.collidedWall:
+            self.direction = self.direction * -1
+            self.collidedWall = False
+
+        self.rect.x += (playerSpeed-1)*direction
+
+        self.rect.y += self.direction
+
+class Level6Dynamite(pygame.sprite.Sprite):
+    def __init__(self,x,y):
+        super().__init__()
+        self.image = pygame.Surface((32,32))
+        self.image.fill((0,0,0))
+        self.rect = self.image.get_rect(topleft=(x,y))
+
+    def update(self, playerX, playerSpeed, direction):
+        self.rect.x += (playerSpeed-1)*direction
+
+class Level6Finish(pygame.sprite.Sprite):
+    def __init__(self,x,y):
+        super().__init__()
+        self.image = pygame.Surface((32,32))
+        self.image.fill((0,0,255))
+        self.rect = self.image.get_rect(topleft=(x,y))
+
+    def update(self, playerX, playerSpeed, direction):
+        self.rect.x += (playerSpeed-1)*direction
+
+
+        
+
 pipesInitial = [
 
     [[1,1,1,1],[1,1,0,1],[1,1,1,0],[1,1,0,0],[1,1,0,0],[0,0,0,1]],
@@ -1089,7 +1167,7 @@ while running:
             pygame.display.flip()
                     
 
-
+ 
 
         #level 2, a free-romaing maze with a torch for vision restriction
         if currentLevel == 1:
@@ -1162,8 +1240,6 @@ while running:
             DISPLAYSURF.blit(torchLight, torchLight_rect)
             
             pygame.display.flip()
-
-
 
 
         #level 3, a puzzle
@@ -1458,7 +1534,128 @@ while running:
 
         #level 7, underwater avoid enemies and don't run out of breath 
         if currentLevel == 6:
-            level6()
+            if initializeLevel:
+                all_floors = pygame.sprite.Group()
+                all_enemey1 = pygame.sprite.Group()
+                all_enemey2 = pygame.sprite.Group()
+                all_dynamite = pygame.sprite.Group()
+                all_finish = pygame.sprite.Group()
+
+                breath = 10 #10 air bubbles, lose one every ~10-12 seconds 
+                startTime = pygame.time.get_ticks() #in milliseconds
+
+                playerSpeed = 2
+                step = 0
+                stepX = 0
+                for i, row in enumerate(levelMap6):
+                    currentY = (step * 32)
+                    if (i+1) % 28 == 0: 
+                        step = 0
+                        stepX +=1
+                    else:
+                        step+=1
+                    for j, block in enumerate(row):
+                        currentX = stepX*704+(j*32)
+                        if block == 'b':
+                            new_floor = Level6FloorBlock(currentX, currentY)
+                            all_floors.add(new_floor)
+                        if block == 'p':
+                            player = Level6Player(currentX, currentY)
+                        if block == '1':
+                            new_e = Level6Enemy1(currentX, currentY)
+                            all_enemey1.add(new_e)
+                        if block == '2':
+                            new_e = Level6Enemy2(currentX, currentY)
+                            all_enemey2.add(new_e)
+                        if block == 'd':
+                            new_d = Level6Dynamite(currentX, currentY)
+                            all_dynamite.add(new_d)
+                        if block == 'f':
+                            new_f = Level6Finish(currentX, currentY)
+                            all_finish.add(new_f)
+                        
+                initializeLevel = False
+
+            mouse_pressed = pygame.mouse.get_pressed()
+            mouse_pos = pygame.mouse.get_pos()
+            for event in pygame.event.get(): 
+                if event.type == pygame.QUIT:
+                    pygame.quit()
+                    sys.exit()
+
+            keys = pygame.key.get_pressed()
+            old_x, old_y = player.rect.x, player.rect.y
+            if keys[pygame.K_a]:
+                player.rect.x -= playerSpeed
+            if keys[pygame.K_d]:
+                player.rect.x += playerSpeed 
+
+            if pygame.sprite.spritecollide(player, all_floors, False):
+                player.rect.x = old_x
+
+            if keys[pygame.K_w]:
+                player.rect.y -= playerSpeed+1
+            if keys[pygame.K_s]:
+                player.rect.y += playerSpeed
+            else:
+                player.rect.y += playerSpeed-1
+
+            if player.rect.x <= 335:
+                direction = 1
+                player.rect.x += 1
+            elif player.rect.x >= 375:
+                direction = -1
+                player.rect.x -= 1
+            else:
+                direction = 0
+
+            if pygame.sprite.spritecollide(player, all_floors, False):
+                player.rect.y = old_y
+
+            if not pygame.sprite.spritecollide(player, all_floors, False):
+                all_floors.update(player.rect.x, playerSpeed, direction)
+                all_enemey2.update(player.rect.x, playerSpeed, direction)
+                all_dynamite.update(player.rect.x, playerSpeed, direction)
+                all_finish.update(player.rect.x, playerSpeed, direction)
+            else:
+                player.rect.x  += direction
+            
+            currentTime = pygame.time.get_ticks() #in milliseconds
+            if currentTime - startTime >= 12000: #every 12 seconds
+                breath -= 1 
+                print(breath)
+                startTime = currentTime
+
+            if breath <= 0:
+                print('died')
+            if pygame.sprite.spritecollide(player, all_enemey1, False):
+                print("died")
+            if pygame.sprite.spritecollide(player, all_enemey2, False):
+                print('died')
+            if pygame.sprite.spritecollide(player, all_dynamite, False):
+                print('died')
+            if pygame.sprite.spritecollide(player, all_finish, False):
+                print('finish')
+
+            for enemey in all_enemey2:
+                if pygame.sprite.spritecollide(enemey, all_floors, False):
+                    enemey.collidedWall = True
+
+            player.update()
+            all_enemey1.update()
+            
+            DISPLAYSURF.blit(background, (0,0))
+            pygame.draw.rect(DISPLAYSURF, RED, player.rect)
+            all_floors.draw(DISPLAYSURF)
+            all_enemey1.draw(DISPLAYSURF)
+            all_enemey2.draw(DISPLAYSURF)
+            all_dynamite.draw(DISPLAYSURF)
+            all_finish.draw(DISPLAYSURF)
+
+            for i in range(breath):
+                pygame.draw.rect(DISPLAYSURF, RED, (280+i*17,825,16,16))
+
+            pygame.display.flip()
 
         #level 8, a puzzle
         if currentLevel == 7:
