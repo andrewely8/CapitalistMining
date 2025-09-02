@@ -66,7 +66,9 @@ minecartPlayerJump = pygame.image.load('pngImages/minerMinecartJump.png')
 dynamite = pygame.image.load('pngImages/Dynamite.png')
 minecartLevelBackground = pygame.image.load('pngImages/minecartLevelBackground.png')
 
+finishLevel2 = pygame.image.load('pngImages/finishLevel2.png')
 torchLight_rect = torchLight.get_rect()
+torchImage = pygame.image.load('pngImages/torch.png')
 
 level3Background = pygame.image.load('pngImages/level3Background.png')
 valveEmptyImage = pygame.image.load('pngImages/valveEmpty.png')
@@ -82,6 +84,24 @@ minerRightWalk = pygame.image.load('pngImages/minerRight.png')
 minerLeftWalk2 = pygame.image.load('pngImages/minerLeft2.png')
 minerRightWalk2 = pygame.image.load('pngImages/minerRight2.png')
 minerIdle = pygame.image.load('pngImages/minerIdle.png')
+airBubble = pygame.image.load('pngImages/airBubble.png')
+squid = pygame.image.load('pngImages/squid.png')
+fish = pygame.image.load('pngImages/fish.png')
+level6Background = pygame.image.load('pngImages/level6Background.png')
+level1Background = pygame.image.load('pngImages/level1Background.png')
+minerSwimmingIdle = pygame.image.load('pngImages/minerSwimmingIdle.png')
+minerSwimming1 = pygame.image.load('pngImages/minerSwimming1.png')
+minerSwimming2 = pygame.image.load('pngImages/minerSwimming2.png')
+minerIdleJump = pygame.image.load('pngImages/minerIdleJump.png')
+minerTopView1 = pygame.image.load('pngImages/minerTopView1.png')
+minerTopView2 = pygame.image.load('pngImages/minerTopView2.png')
+minerTopView3 = pygame.image.load('pngImages/minerTopView3.png')
+minerTopView4 = pygame.image.load('pngImages/minerTopView4.png')
+minerTopView5 = pygame.image.load('pngImages/minerTopView5.png')
+minerTopView6 = pygame.image.load('pngImages/minerTopView6.png')
+minerTopView7 = pygame.image.load('pngImages/minerTopView7.png')
+minerTopView8 = pygame.image.load('pngImages/minerTopView8.png')
+minerTopViewIdle = pygame.image.load('pngImages/minerTopViewIdle.png')
 
 #fonts
 font1 = pygame.font.SysFont('monaco', 24)
@@ -95,7 +115,7 @@ running = True
 displayStore = False
 displayMine = False
 displayMainMenu = True
-profit = 1000000000
+profit = 400000000000000000000
 menuRect = pygame.Rect(680, 860, 30, 30)
 itemsIndex = 1
 upgradesIndex = 1
@@ -719,22 +739,65 @@ def mineScreen():
 class Player(pygame.sprite.Sprite):
     def __init__(self,x,y):
         super().__init__()
-        self.image = pygame.Surface((32,32))
-        self.image.fill(RED)
+        self.image = minerIdle
         self.rect = self.image.get_rect(topleft=(x,y))
+        self.direction = 0
 
     def update(self):
-        pass
+        if self.direction == -1:
+            if frame <= 30:
+                self.image = minerLeftWalk
+            else:
+                self.image = minerLeftWalk2
+        elif self.direction == 1:
+            if frame <= 30:
+                self.image = minerRightWalk
+            else:
+                self.image = minerRightWalk2
+        elif self.direction == 2:
+            self.image = minerIdleJump
+        else:
+            self.image = minerIdle
+
+class Level1Background(pygame.sprite.Sprite):
+    def __init__(self,x,y):
+        super().__init__()
+        self.image = level1Background
+        self.rect = self.image.get_rect(topleft=(x,y))
+
+    def update(self, scrollSpeed):
+        self.rect.y -= scrollSpeed
 
 class PlayerTopView(pygame.sprite.Sprite):
     def __init__(self,x,y):
         super().__init__()
-        self.image = pygame.Surface((16,16))
-        self.image.fill(RED)
+        self.image = minerTopViewIdle
         self.rect = self.image.get_rect(topleft=(x,y))
+        self.direction = 0
 
     def update(self):
-        pass
+        if self.direction == 1: #left
+            if frame <= 30:
+                self.image = minerTopView7
+            else:
+                self.image = minerTopView8
+        elif self.direction == 2: #right
+            if frame <= 30:
+                self.image = minerTopView5
+            else:
+                self.image = minerTopView6
+        elif self.direction == 3: #up
+            if frame <= 30:
+                self.image = minerTopView1
+            else:
+                self.image = minerTopView2
+        elif self.direction == 4: #down
+            if frame <= 30:
+                self.image = minerTopView3
+            else:
+                self.image = minerTopView4
+        else:
+            self.image = minerTopViewIdle
 
 class PlayerMinecart(pygame.sprite.Sprite):
     def __init__(self,x,y):
@@ -746,17 +809,14 @@ class PlayerMinecart(pygame.sprite.Sprite):
         self.isGrounded = False
  
     def update(self):
-
-
-
         if self.isGrounded == False and self.isJumping == False:
-            self.rect.y += 3
+            self.rect.y += 6
 
         if self.isJumping:
             self.image = minecartPlayerJump
-            self.rect.y -= 3
+            self.rect.y -= 6
 
-            if self.rect.y <= self.startingY - 100:
+            if self.rect.y <= self.startingY - 110:
                 self.isJumping = False
                 self.image = minecartPlayer
 
@@ -764,43 +824,53 @@ class floorBlock(pygame.sprite.Sprite):
     def __init__(self,x,y):
         super().__init__()
         self.image = pygame.Surface((32,32))
-        self.image.fill((255,255,255))
+        self.image.fill((0,0,0))
         self.rect = self.image.get_rect(topleft=(x,y))
 
-    def update(self):
-            self.rect.y -= 1
+    def update(self, scrollSpeed):
+        self.rect.y -= scrollSpeed
+
+        if self.rect.y <= -32:
+            self.kill()
         
-
-
 class bottomFloorBlock(pygame.sprite.Sprite):
     def __init__(self,x,y):
         super().__init__()
         self.image = pygame.Surface((32,32))
-        self.image.fill((255,255,255))
+        self.image.fill((0,0,0))
         self.rect = self.image.get_rect(topleft=(x,y))
-    def update(self):
+    def update(self, scrollSpeed):
         if self.rect.y >= 868:
-            self.rect.y -= 1
+            self.rect.y -= scrollSpeed
+        else:
+            global level1StopScrolling
+            level1StopScrolling = True
         
 
 class MinecartFinishBlock(pygame.sprite.Sprite):
     def __init__(self,x,y):
         super().__init__()
-        self.image = pygame.Surface((32,32))
-        self.image.fill((0,0,255))
+        self.image = level3Finish
         self.rect = self.image.get_rect(topleft=(x,y))
-    def update(self):
-        self.rect.x -= 2
+    def update(self, scrollSpeed):
+        self.rect.x -= scrollSpeed
 
 class FinishBlock(pygame.sprite.Sprite):
     def __init__(self,x,y):
         super().__init__()
-        self.image = pygame.Surface((32,32))
-        self.image.fill((0,0,255))
+        self.image = level3Finish
+        self.rect = self.image.get_rect(topleft=(x,y))
+    def update(self, scrollSpeed):
+        if self.rect.y >= 736:
+            self.rect.y -= scrollSpeed
+
+class FinishLevel2(pygame.sprite.Sprite):
+    def __init__(self,x,y):
+        super().__init__()
+        self.image = finishLevel2
         self.rect = self.image.get_rect(topleft=(x,y))
     def update(self):
-        if self.rect.y >= 836:
-            self.rect.y -= 1
+        pass
 
 class stillFloorBlock(pygame.sprite.Sprite):
     def __init__(self,x,y):
@@ -817,8 +887,8 @@ class SidescrollFloorBlock(pygame.sprite.Sprite):
         self.image = pygame.Surface((32,32))
         self.image.fill((0,0,0))
         self.rect = self.image.get_rect(topleft=(x,y))
-    def update(self):
-        self.rect.x -= 2
+    def update(self,scrollSpeed):
+        self.rect.x -= scrollSpeed
         if self.rect.x <= -32:
             self.kill()
 
@@ -827,8 +897,8 @@ class SidescrollKillBlock(pygame.sprite.Sprite):
         super().__init__()
         self.image = dynamite
         self.rect = self.image.get_rect(topleft=(x,y))
-    def update(self):
-        self.rect.x -= 2
+    def update(self, scrollSpeed):
+        self.rect.x -= scrollSpeed
         if self.rect.x <= -32:
             self.kill()
 
@@ -837,8 +907,8 @@ class SidescrollUpRail(pygame.sprite.Sprite):
         super().__init__()
         self.image = minecartRailUp
         self.rect = self.image.get_rect(topleft=(x,y))
-    def update(self):
-        self.rect.x -= 2
+    def update(self, scrollSpeed):
+        self.rect.x -= scrollSpeed
         if self.rect.x <= -32:
             self.kill()
 class SidescrollUpRailTopLeft(pygame.sprite.Sprite):
@@ -846,8 +916,8 @@ class SidescrollUpRailTopLeft(pygame.sprite.Sprite):
         super().__init__()
         self.image = minecartRailUpTopLeft
         self.rect = self.image.get_rect(topleft=(x,y))
-    def update(self):
-        self.rect.x -= 2
+    def update(self,scrollSpeed):
+        self.rect.x -= scrollSpeed
         if self.rect.x <= -32:
             self.kill()
 class SidescrollUpRailBottomRight(pygame.sprite.Sprite):
@@ -855,8 +925,8 @@ class SidescrollUpRailBottomRight(pygame.sprite.Sprite):
         super().__init__()
         self.image = minecartRailUpBottomRight
         self.rect = self.image.get_rect(topleft=(x,y))
-    def update(self):
-        self.rect.x -= 2
+    def update(self, scrollSpeed):
+        self.rect.x -= scrollSpeed
         if self.rect.x <= -32:
             self.kill()
 
@@ -865,8 +935,8 @@ class SidescrollDownRail(pygame.sprite.Sprite):
         super().__init__()
         self.image = minecartRailDown
         self.rect = self.image.get_rect(topleft=(x,y))
-    def update(self):
-        self.rect.x -= 2
+    def update(self,scrollSpeed):
+        self.rect.x -= scrollSpeed
         if self.rect.x <= -32:
             self.kill()
 class SidescrollDownRailBottomLeft(pygame.sprite.Sprite):
@@ -874,8 +944,8 @@ class SidescrollDownRailBottomLeft(pygame.sprite.Sprite):
         super().__init__()
         self.image = minecartRailDownBottomLeft
         self.rect = self.image.get_rect(topleft=(x,y))
-    def update(self):
-        self.rect.x -= 2
+    def update(self,scrollSpeed):
+        self.rect.x -= scrollSpeed
         if self.rect.x <= -32:
             self.kill()
 class SidescrollDownRailTopRight(pygame.sprite.Sprite):
@@ -883,8 +953,8 @@ class SidescrollDownRailTopRight(pygame.sprite.Sprite):
         super().__init__()
         self.image = minecartRailDownTopRight
         self.rect = self.image.get_rect(topleft=(x,y))
-    def update(self):
-        self.rect.x -= 2
+    def update(self,scrollSpeed):
+        self.rect.x -= scrollSpeed
         if self.rect.x <= -32:
             self.kill()
 
@@ -893,8 +963,8 @@ class SidescrollStraightRail(pygame.sprite.Sprite):
         super().__init__()
         self.image = minecartRailStraight
         self.rect = self.image.get_rect(topleft=(x,y))
-    def update(self):
-        self.rect.x -= 2
+    def update(self,scrollSpeed):
+        self.rect.x -= scrollSpeed
         if self.rect.x <= -32:
             self.kill()
 
@@ -903,14 +973,13 @@ class SidescrollBackground(pygame.sprite.Sprite):
         super().__init__()
         self.image = minecartLevelBackground
         self.rect = self.image.get_rect(topleft=(x,y))
-    def update(self):
-        self.rect.x -= 2
+    def update(self, scrollSpeed):
+        self.rect.x -= scrollSpeed
 
 class Torch(pygame.sprite.Sprite):
     def __init__(self,x,y):
         super().__init__()
-        self.image = pygame.Surface((32,32))
-        self.image.fill((255,255,0))
+        self.image = torchImage
         self.rect = self.image.get_rect(topleft=(x,y))
         self.collected = False
     def update(self):
@@ -941,7 +1010,7 @@ class Level6FloorBlock(pygame.sprite.Sprite):
     def __init__(self,x,y):
         super().__init__()
         self.image = pygame.Surface((32,32))
-        self.image.fill((255,255,255))
+        self.image.fill((0,0,0))
         self.rect = self.image.get_rect(topleft=(x,y))
 
     def update(self, playerX, playerSpeed, direction):
@@ -952,26 +1021,37 @@ class Level6FloorBlock(pygame.sprite.Sprite):
 class Level6Player(pygame.sprite.Sprite):
     def __init__(self,x,y):
         super().__init__()
-        self.image = minerIdle
+        self.image = minerSwimmingIdle
         self.rect = self.image.get_rect(topleft=(x,y))
-        self.direction = 0   #  0:idle   1:left   2:right
+        self.direction = 0   #  different than playerDirection variable and param
 
-    def update(self):
-        pass
+    def update(self, playerDirection):
+        if playerDirection == 1:
+            if frame <= 30:
+                self.image = minerSwimming1
+            else:
+                self.image = minerSwimming2
+        else:
+            self.image = minerSwimmingIdle
 
 class Level6Enemy1(pygame.sprite.Sprite):
     def __init__(self,x,y):
         super().__init__()
-        self.image = pygame.Surface((32,32))
+        self.image = fish
         self.rect = self.image.get_rect(topleft=(x,y))
 
-    def update(self):
-        self.rect.x -= 2
+    def update(self,playerSpeed, direction):
+        if direction == 1:
+            self.rect.x -= 1
+        elif direction == -1:
+            self.rect.x -= 3
+        else:
+            self.rect.x -= 2
 
 class Level6Enemy2(pygame.sprite.Sprite):
     def __init__(self,x,y):
         super().__init__()
-        self.image = pygame.Surface((32,32))
+        self.image = squid
         self.rect = self.image.get_rect(topleft=(x,y))
         self.topRange = self.rect.y - 150
         self.bottomRange = self.rect.y + 150
@@ -995,8 +1075,8 @@ class Level6Enemy2(pygame.sprite.Sprite):
 class Level6Dynamite(pygame.sprite.Sprite):
     def __init__(self,x,y):
         super().__init__()
-        self.image = pygame.Surface((32,32))
-        self.image.fill((0,0,0))
+        self.image = dynamite
+        
         self.rect = self.image.get_rect(topleft=(x,y))
 
     def update(self, playerX, playerSpeed, direction):
@@ -1087,7 +1167,7 @@ frame = 0
 while running:
     clock.tick(60)
     frame +=1
-    if frame >= 30:
+    if frame >= 60:
         frame = 0
 
     if displayMainMenu:
@@ -1101,6 +1181,11 @@ while running:
         #Level 1, downscrolling avoid getting stuck
         if currentLevel == 0:
             if initializeLevel:
+
+                scrollSpeed = 2
+                level1StopScrolling = False
+
+                all_backgrounds = pygame.sprite.Group()
                 all_floors = pygame.sprite.Group()
                 bottom_floors = pygame.sprite.Group()
                 for i, row in enumerate(levelMap0):
@@ -1117,6 +1202,13 @@ while running:
                             bottom_floors.add(new_floor)
                         if block == 'f':
                             finish = FinishBlock(currentX, currentY)
+                
+                background1 = Level1Background(0,0)
+                background2 = Level1Background(0,900)
+                background3 = Level1Background(0,1800)
+                background4 = Level1Background(0,2700)
+                all_backgrounds.add(background1, background2, background3, background4)
+
                 initializeLevel = False
 
             mouse_pressed = pygame.mouse.get_pressed()
@@ -1127,17 +1219,33 @@ while running:
                     pygame.quit()
                     sys.exit()
 
-            keys = pygame.key.get_pressed()   
+            old_x, old_y = player.rect.x, player.rect.y
+            keys = pygame.key.get_pressed()
+
             if keys[pygame.K_a] and player.rect.x >= 8:
-                player.rect.x -= 2
+                player.rect.x -= 3
+                player.direction = -1
             if keys[pygame.K_d] and player.rect.x <= 680:
-                player.rect.x += 2
+                player.rect.x += 3
+                player.direction = 1
             if pygame.sprite.spritecollide(player, all_floors, False):
-                player.rect.y -= 1
-            elif pygame.sprite.spritecollide(player, bottom_floors, False):
-                player.rect.y += 0
-            else:
-                player.rect.y += 2
+                player.rect.x = old_x
+
+            if not keys[pygame.K_a] and not keys[pygame.K_d]:
+                player.direction = 0
+
+            player.rect.y += 3
+
+            collisions = pygame.sprite.spritecollide(player, all_floors, False)
+            if collisions:
+                player.rect.bottom = collisions[0].rect.top - 2
+            if not collisions:
+                player.direction = 2
+
+            collisions = pygame.sprite.spritecollide(player, bottom_floors, False)
+            if collisions:
+                player.rect.bottom = collisions[0].rect.top - 1
+                player.direction = 0
 
             if player.rect.y <= 0:
                 levelActive = False
@@ -1150,23 +1258,23 @@ while running:
                 levelSelect[0]['completed'] = True
                 displayMine = True
 
- 
-            DISPLAYSURF.blit(background, (0,0))
-            pygame.draw.rect(DISPLAYSURF, BLACK, (0,0,8,900))
-            pygame.draw.rect(DISPLAYSURF, BLACK, (712,0,8,900))
 
             player.update()
-            pygame.draw.rect(DISPLAYSURF, RED, player.rect)
-            if player.rect.y <= 800:
-                all_floors.update()
-            bottom_floors.update()
+            finish.update(scrollSpeed)
+            bottom_floors.update(scrollSpeed)
+            if level1StopScrolling == False:
+                all_backgrounds.update(scrollSpeed)
+                all_floors.update(scrollSpeed)
+
+            all_backgrounds.draw(DISPLAYSURF)
+            pygame.draw.rect(DISPLAYSURF, BLACK, (0,0,8,900))
+            pygame.draw.rect(DISPLAYSURF, BLACK, (712,0,8,900))
             all_floors.draw(DISPLAYSURF)
             bottom_floors.draw(DISPLAYSURF)
-            finish.update()
-            pygame.draw.rect(DISPLAYSURF, (0,0,255), finish.rect)
-            pygame.display.flip()
-                    
+            DISPLAYSURF.blit(player.image, player.rect)
+            DISPLAYSURF.blit(finish.image,finish.rect)
 
+            pygame.display.flip()
  
 
         #level 2, a free-romaing maze with a torch for vision restriction
@@ -1185,7 +1293,7 @@ while running:
                         if block == 't':
                             torch = Torch(currentX, currentY)
                         if block == 'f':
-                            finish = FinishBlock(currentX, currentY)
+                            finish = FinishLevel2(currentX, currentY)
                 initializeLevel = False
 
             mouse_pressed = pygame.mouse.get_pressed()
@@ -1195,24 +1303,30 @@ while running:
                     pygame.quit()
                     sys.exit()
 
+
             old_x, old_y = player.rect.x, player.rect.y
-
             keys = pygame.key.get_pressed()
-            if keys[pygame.K_a] and player.rect.x >= 8:
-                player.rect.x -= 3
-            if keys[pygame.K_d] and player.rect.x <= 680:
-                player.rect.x += 3
 
+            if keys[pygame.K_a] and player.rect.x >= 8:
+                player.rect.x -= 2
+                player.direction = 1
+            if keys[pygame.K_d] and player.rect.x <= 693:
+                player.rect.x += 2
+                player.direction = 2
             if pygame.sprite.spritecollide(player, all_floors, False):
                 player.rect.x = old_x
 
             if keys[pygame.K_w] and player.rect.y >= 8:
-                player.rect.y -= 3
+                player.rect.y -= 2
+                player.direction = 3
             if keys[pygame.K_s] and player.rect.y <= 860:
-                player.rect.y += 3
-
+                player.rect.y += 2
+                player.direction = 4
             if pygame.sprite.spritecollide(player, all_floors, False):
                 player.rect.y = old_y
+
+            if not keys[pygame.K_w] and not keys[pygame.K_s] and not keys[pygame.K_a] and not keys[pygame.K_d]:
+                player.direction = 0
 
             if pygame.sprite.collide_rect(player, finish):
                 levelActive = False
@@ -1223,17 +1337,19 @@ while running:
                 torch.collected = True
 
  
+            player.update()
+
             DISPLAYSURF.blit(background, (0,0))
             pygame.draw.rect(DISPLAYSURF, BLACK, (0,0,8,900))
             pygame.draw.rect(DISPLAYSURF, BLACK, (712,0,8,900))
             pygame.draw.rect(DISPLAYSURF, BLACK, (0,0,720,8))
             pygame.draw.rect(DISPLAYSURF, BLACK, (0,892,720,8))
 
-            pygame.draw.rect(DISPLAYSURF, (0,0,255), finish.rect)
-            pygame.draw.rect(DISPLAYSURF, RED, player.rect)
+            DISPLAYSURF.blit(finish.image, finish.rect)
+            DISPLAYSURF.blit(player.image, player.rect)
             all_floors.draw(DISPLAYSURF)
             if torch.collected == False:
-                pygame.draw.rect(DISPLAYSURF, (255,255,0), torch.rect)
+                DISPLAYSURF.blit(torch.image, torch.rect)
                 torchLight_rect.center = (torch.rect.x+16,torch.rect.y+16)
             elif torch.collected == True:
                 torchLight_rect.center = (player.rect.x+16,player.rect.y+16)
@@ -1394,11 +1510,36 @@ while running:
 
         #level 4, navigate to the end through enemies (like a standard mario level)
         if currentLevel == 3:
-            level3()
+            if initializeLevel: 
+                initializeLevel = False
+
+            mouse_pressed = pygame.mouse.get_pressed()
+            mouse_pos = pygame.mouse.get_pos()
+            for event in pygame.event.get(): 
+                if event.type == pygame.QUIT:
+                    pygame.quit()
+                    sys.exit()
+
+            if mouse_pressed[0]: #Level failed
+                levelActive = False
+                initializeLevel = True
+                displayMine = True
+            if mouse_pressed[2]: #Level Completed
+                levelActive = False
+                initializeLevel = True
+                levelSelect[3]['completed'] = True
+                displayMine = True
+
+            DISPLAYSURF.blit(background,(0,0))
+            pygame.display.flip()
+
 
         #level 5, a minecart sidescroller (like geometry dash)
         if currentLevel == 4:
             if initializeLevel:
+                
+                scrollSpeed = 4
+
                 background_sprites = pygame.sprite.Group()
                 all_floors = pygame.sprite.Group()
                 kill_blocks = pygame.sprite.Group()
@@ -1407,6 +1548,7 @@ while running:
                 visual_rails = pygame.sprite.Group()
                 straight_rails = pygame.sprite.Group()
                 down_rails = pygame.sprite.Group()
+
                 background1 = SidescrollBackground(0,0)
                 background2 = SidescrollBackground(2160,0)
                 background3 = SidescrollBackground(4320,0)
@@ -1433,8 +1575,7 @@ while running:
                             new_block = SidescrollKillBlock(currentX, currentY)
                             kill_blocks.add(new_block)
                         if block == 'f':
-                            new_block = MinecartFinishBlock(currentX, currentY)
-                            finish_blocks.add(new_block)
+                            finish = MinecartFinishBlock(currentX, currentY)
                         if block == 'u':
                             new_block = SidescrollUpRail(currentX, currentY)
                             up_rails.add(new_block)
@@ -1471,7 +1612,7 @@ while running:
                 initializeLevel = True
                 displayMine = True
 
-            if pygame.sprite.spritecollide(player, finish_blocks, False):
+            if pygame.sprite.collide_rect(player, finish):
                 levelActive = False
                 initializeLevel = True
                 levelSelect[4]['completed'] = True
@@ -1480,7 +1621,7 @@ while running:
             if pygame.sprite.spritecollide(player, straight_rails, False):
                 player.image = minecartPlayer
             if pygame.sprite.spritecollide(player, up_rails, False):
-                player.rect.y -= 5
+                player.rect.y -= 10
                 rotatePlayerImage = pygame.transform.rotate(minecartPlayer,45)
                 player.image = rotatePlayerImage
             if pygame.sprite.spritecollide(player, down_rails, False):
@@ -1506,31 +1647,53 @@ while running:
                 player.startingY = player.rect.y
                 player.isJumping = True
 
-            background_sprites.update()
-            all_floors.update()
-            kill_blocks.update()
-            finish_blocks.update()
-            up_rails.update()
-            visual_rails.update()
-            down_rails.update()
-            straight_rails.update()
+            background_sprites.update(scrollSpeed)
+            all_floors.update(scrollSpeed)
+            kill_blocks.update(scrollSpeed)
+            finish.update(scrollSpeed)
+            up_rails.update(scrollSpeed)
+            visual_rails.update(scrollSpeed)
+            down_rails.update(scrollSpeed)
+            straight_rails.update(scrollSpeed)
             player.update()
+
             background_sprites.draw(DISPLAYSURF)
             all_floors.draw(DISPLAYSURF)
             kill_blocks.draw(DISPLAYSURF)
-            finish_blocks.draw(DISPLAYSURF)
             up_rails.draw(DISPLAYSURF)
             visual_rails.draw(DISPLAYSURF)
             straight_rails.draw(DISPLAYSURF) 
             down_rails.draw(DISPLAYSURF)
 
+            DISPLAYSURF.blit(finish.image, finish.rect)
             DISPLAYSURF.blit(player.image, player.rect)
             
             pygame.display.flip()
 
         #level 6, navigate to the end through enemies (like a standard mario level)
         if currentLevel == 5:
-            level5()
+            if initializeLevel: 
+                initializeLevel = False
+
+            mouse_pressed = pygame.mouse.get_pressed()
+            mouse_pos = pygame.mouse.get_pos()
+            for event in pygame.event.get(): 
+                if event.type == pygame.QUIT:
+                    pygame.quit()
+                    sys.exit()
+
+            if mouse_pressed[0]: #Level failed
+                levelActive = False
+                initializeLevel = True
+                displayMine = True
+            if mouse_pressed[2]: #Level Completed
+                levelActive = False
+                initializeLevel = True
+                levelSelect[5]['completed'] = True
+                displayMine = True
+
+            DISPLAYSURF.blit(background,(0,0))
+            pygame.display.flip()
 
         #level 7, underwater avoid enemies and don't run out of breath 
         if currentLevel == 6:
@@ -1587,18 +1750,27 @@ while running:
             old_x, old_y = player.rect.x, player.rect.y
             if keys[pygame.K_a]:
                 player.rect.x -= playerSpeed
+                playerDirection = 1
             if keys[pygame.K_d]:
-                player.rect.x += playerSpeed 
+                player.rect.x += playerSpeed
+                playerDirection = 1
+            
 
             if pygame.sprite.spritecollide(player, all_floors, False):
                 player.rect.x = old_x
 
             if keys[pygame.K_w]:
                 player.rect.y -= playerSpeed+1
+                playerDirection = 1
             if keys[pygame.K_s]:
                 player.rect.y += playerSpeed
-            else:
+                playerDirection = 1
+            elif not keys[pygame.K_s] and not keys[pygame.K_w] and not keys[pygame.K_a] and not keys[pygame.K_d]:
                 player.rect.y += playerSpeed-1
+                playerDirection = 0
+
+            if pygame.sprite.spritecollide(player, all_floors, False):
+                player.rect.y = old_y
 
             if player.rect.x <= 335:
                 direction = 1
@@ -1609,43 +1781,43 @@ while running:
             else:
                 direction = 0
 
-            if pygame.sprite.spritecollide(player, all_floors, False):
-                player.rect.y = old_y
-
             if not pygame.sprite.spritecollide(player, all_floors, False):
                 all_floors.update(player.rect.x, playerSpeed, direction)
                 all_enemey2.update(player.rect.x, playerSpeed, direction)
                 all_dynamite.update(player.rect.x, playerSpeed, direction)
                 all_finish.update(player.rect.x, playerSpeed, direction)
             else:
-                player.rect.x  += direction
+                player.rect.x += direction+5
             
             currentTime = pygame.time.get_ticks() #in milliseconds
-            if currentTime - startTime >= 12000: #every 12 seconds
+            if currentTime - startTime >= 10000: #every 10 seconds
                 breath -= 1 
                 print(breath)
                 startTime = currentTime
 
-            if breath <= 0:
-                print('died')
-            if pygame.sprite.spritecollide(player, all_enemey1, False):
-                print("died")
-            if pygame.sprite.spritecollide(player, all_enemey2, False):
-                print('died')
-            if pygame.sprite.spritecollide(player, all_dynamite, False):
-                print('died')
+            if (breath <= 0 or pygame.sprite.spritecollide(player, all_enemey1, False) or   
+                pygame.sprite.spritecollide(player, all_enemey2, False) or 
+                pygame.sprite.spritecollide(player, all_dynamite, False)):
+                
+                levelActive = False
+                initializeLevel = True
+                displayMine = True
+
             if pygame.sprite.spritecollide(player, all_finish, False):
-                print('finish')
+                levelActive = False
+                initializeLevel = True
+                levelSelect[6]['completed'] = True
+                displayMine = True
 
             for enemey in all_enemey2:
                 if pygame.sprite.spritecollide(enemey, all_floors, False):
                     enemey.collidedWall = True
 
-            player.update()
-            all_enemey1.update()
+            player.update(playerDirection)
+            all_enemey1.update(playerSpeed, direction)
             
-            DISPLAYSURF.blit(background, (0,0))
-            pygame.draw.rect(DISPLAYSURF, RED, player.rect)
+            DISPLAYSURF.blit(level6Background , (0,0))
+            DISPLAYSURF.blit(player.image, player.rect)
             all_floors.draw(DISPLAYSURF)
             all_enemey1.draw(DISPLAYSURF)
             all_enemey2.draw(DISPLAYSURF)
@@ -1653,18 +1825,81 @@ while running:
             all_finish.draw(DISPLAYSURF)
 
             for i in range(breath):
-                pygame.draw.rect(DISPLAYSURF, RED, (280+i*17,825,16,16))
+                DISPLAYSURF.blit(airBubble, (280+i*17,825,16,16))
 
             pygame.display.flip()
 
         #level 8, a puzzle
         if currentLevel == 7:
-            level7()
+            if initializeLevel: 
+                initializeLevel = False
+
+            mouse_pressed = pygame.mouse.get_pressed()
+            mouse_pos = pygame.mouse.get_pos()
+            for event in pygame.event.get(): 
+                if event.type == pygame.QUIT:
+                    pygame.quit()
+                    sys.exit()
+
+            if mouse_pressed[0]: #Level failed
+                levelActive = False
+                initializeLevel = True
+                displayMine = True
+            if mouse_pressed[2]: #Level Completed
+                levelActive = False
+                initializeLevel = True
+                levelSelect[3]['completed'] = True
+                displayMine = True
+
+            DISPLAYSURF.blit(background,(0,0))
+            pygame.display.flip()
 
         #level 9, Waves of enemies coming from both left and right and you need to defeat them all
         if currentLevel == 8:
-            level8()
+            if initializeLevel: 
+                initializeLevel = False
+
+            mouse_pressed = pygame.mouse.get_pressed()
+            mouse_pos = pygame.mouse.get_pos()
+            for event in pygame.event.get(): 
+                if event.type == pygame.QUIT:
+                    pygame.quit()
+                    sys.exit()
+
+            if mouse_pressed[0]: #Level failed
+                levelActive = False
+                initializeLevel = True
+                displayMine = True
+            if mouse_pressed[2]: #Level Completed
+                levelActive = False
+                initializeLevel = True
+                levelSelect[3]['completed'] = True
+                displayMine = True
+
+            DISPLAYSURF.blit(background,(0,0))
+            pygame.display.flip()
 
         #level 10, an upscrolling and side scrolling escape, avoid getting stuck
         if currentLevel == 9:
-            level9()
+            if initializeLevel: 
+                initializeLevel = False
+
+            mouse_pressed = pygame.mouse.get_pressed()
+            mouse_pos = pygame.mouse.get_pos()
+            for event in pygame.event.get(): 
+                if event.type == pygame.QUIT:
+                    pygame.quit()
+                    sys.exit()
+
+            if mouse_pressed[0]: #Level failed
+                levelActive = False
+                initializeLevel = True
+                displayMine = True
+            if mouse_pressed[2]: #Level Completed
+                levelActive = False
+                initializeLevel = True
+                levelSelect[3]['completed'] = True
+                displayMine = True
+
+            DISPLAYSURF.blit(background,(0,0))
+            pygame.display.flip()
