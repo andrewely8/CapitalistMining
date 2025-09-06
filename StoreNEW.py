@@ -131,7 +131,7 @@ running = True
 displayStore = False
 displayMine = False
 displayMainMenu = True
-profit = 400000000000000000000
+profit = 4
 menuRect = pygame.Rect(680, 860, 30, 30)
 itemsIndex = 1
 upgradesIndex = 1
@@ -1209,27 +1209,65 @@ class Level8Player(pygame.sprite.Sprite):
         self.image = minerIdle
         self.rect = self.image.get_rect(topleft=(x,y))
         self.direction = 0   #  different than playerDirection variable and param
+        self.previousDirection = 1
+        self.attacking = False
+        self.attackingTrack = 0
+        self.attackingCooldown = 0
+        
 
     def update(self):
         if self.direction == 1:
             if frame <= 30:
-                self.image = minerLeftWalk
+                if self.attacking:
+                    self.image = minerIdleJump
+                else:
+                    self.image = minerLeftWalk
             else:
-                self.image = minerLeftWalk2
-        if self.direction == 2:
+                if self.attacking:
+                    self.image = minerIdleJump
+                else:
+                    self.image = minerLeftWalk2
+        elif self.direction == 2:
             if frame <= 30:
-                self.image = minerRightWalk
+                if self.attacking:
+                    self.image = minerIdleJump
+                else:
+                    self.image = minerRightWalk
             else:
-                self.image = minerRightWalk2
+                if self.attacking:
+                    self.image = minerIdleJump
+                else:
+                    self.image = minerRightWalk2
         else:
-            self.image = minerIdle
+            if self.attacking:
+                if self.previousDirection == 1:
+                    self.image = minerIdleJump
+                elif self.previousDirection == 2:
+                    self.image = minerIdleJump
+            else:
+                self.image = minerIdle
+
+
+        if self.attacking:
+            self.attackingTrack += 1
+            if self.attackingTrack >= 30:
+                self.attackingCooldown = 0
+                self.attackingTrack = 0
+                self.attacking = False
+        if not self.attacking:
+            self.attackingCooldown += 1
+
+    def attack(self):
+        if not self.attacking and self.attackingCooldown >= 15:
+            self.attacking = True
+
 
 class Level8Enemy1(pygame.sprite.Sprite):
     def __init__(self,x,y):
         super().__init__()
         self.image = pygame.Surface((32,32))
         self.rect = self.image.get_rect(topleft=(x,y))
-        self.image.fill((0,0,0))
+        self.image.fill((0,0,100))
         self.direction = 0   #  different than playerDirection variable and param
 
     def update(self, playerPosX):
@@ -1243,7 +1281,7 @@ class Level8Enemy2(pygame.sprite.Sprite):
         super().__init__()
         self.image = pygame.Surface((32,32))
         self.rect = self.image.get_rect(topleft=(x,y))
-        self.image.fill((0,0,0))
+        self.image.fill((0,0,255))
         self.direction = 0   #  different than playerDirection variable and param
 
     def update(self, playerPosX):
@@ -1255,7 +1293,7 @@ class Level8Enemy2(pygame.sprite.Sprite):
 class Level8Floor(pygame.sprite.Sprite):
     def __init__(self,x,y):
         super().__init__()
-        self.image = pygame.Surface((0,820))
+        self.image = pygame.Surface((820,300))
         self.rect = self.image.get_rect(topleft=(x,y))
         self.image.fill((0,0,0))
 
@@ -2323,23 +2361,27 @@ while running:
         if currentLevel == 8:
             if initializeLevel:
 
-                player = Level8Player(350,468)
-                floor = Level8Floor(-50,500)
+                playerSpeed = 3
+                spawnLevelY = 568
+                finishOffset = 0
+                enemiesDefeated = False
+
+                player = Level8Player(350,spawnLevelY)
+                floor = Level8Floor(-50,600)
                 all_enemy1 = pygame.sprite.Group()
                 all_enemy2 = pygame.sprite.Group()
                 all_enemy = pygame.sprite.Group()
-                playerSpeed = 3
-                spawnLevelY = 500
+                
 
                 currentX = 0
                 for item in levelMap8[0]: #enemies that come from the left
                     if item == 'a': #enemy type
-                        e = Level8Enemy1(CurrentX, spawnLevelY)
-                        all_enemey1.add(e)
+                        e = Level8Enemy1(currentX, spawnLevelY)
+                        all_enemy1.add(e)
                         all_enemy.add(e)
                     elif item == 'b': #enemey type
-                        e = Level8Enemy2(CurrentX, spawnLevelY)
-                        all_enemey2.add(e)
+                        e = Level8Enemy2(currentX, spawnLevelY)
+                        all_enemy2.add(e)
                         all_enemy.add(e)
                     else: #number representing amount of space of 32 pixels to add
                         currentX -= int(item) * 32
@@ -2347,12 +2389,12 @@ while running:
                 currentX = 720
                 for item in levelMap8[1]: #enemies that come from the right
                     if item == 'a': #enemy type
-                        e = Level8Enemy1(CurrentX, spawnLevelY)
-                        all_enemey1.add(e)
+                        e = Level8Enemy1(currentX, spawnLevelY)
+                        all_enemy1.add(e)
                         all_enemy.add(e)
                     elif item == 'b': #enemey type
-                        e = Level8Enemy2(CurrentX, spawnLevelY)
-                        all_enemey2.add(e)
+                        e = Level8Enemy2(currentX, spawnLevelY)
+                        all_enemy2.add(e)
                         all_enemy.add(e)
                     else: #number representing amount of space of 32 pixels to add
                         currentX += int(item) * 32
@@ -2369,28 +2411,62 @@ while running:
             keys = pygame.key.get_pressed()
             if keys[pygame.K_a] and player.rect.x >= 8:
                 player.rect.x -= playerSpeed
+                player.previousDirection = player.direction
                 player.direction = 1
-            if keys[pygame.K_d] and player.rect.x <= 680:
+            if keys[pygame.K_d] and player.rect.x <= 680 + finishOffset:
                 player.rect.x += playerSpeed
+                player.previousDirection = player.direction
                 player.direction = 2
+            if keys[pygame.K_SPACE]:
+                player.attack()
+            if not keys[pygame.K_a] and not keys[pygame.K_d]:
+                if player.direction!= 0:
+                    player.previousDirection = player.direction
+                player.direction = 0
 
-            if mouse_pressed[0]: #Level failed
+            if len(all_enemy) == 0:
+                enemiesDefeated = True
+                finishOffset += 64
+            if enemiesDefeated and player.rect.x >= 700:
                 levelActive = False
                 initializeLevel = True
+                levelSelect[8]['completed'] = True
                 displayMine = True
-            if mouse_pressed[2]: #Level Completed
-                levelActive = False
-                initializeLevel = True
-                levelSelect[3]['completed'] = True
-                displayMine = True
+
+            collisions = pygame.sprite.spritecollide(player, all_enemy, False)
+            for collision in collisions:
+                if player.attacking and player.previousDirection == 1:
+                    if collision.rect.x <= player.rect.x:
+                        collision.kill()
+                    else:
+                        levelActive = False
+                        initializeLevel = True
+                        displayMine = True
+                elif player.attacking and player.previousDirection == 2:
+                    if collision.rect.x >= player.rect.x:
+                        collision.kill()
+                    else:
+                        levelActive = False
+                        initializeLevel = True
+                        displayMine = True
+                else:
+                    levelActive = False
+                    initializeLevel = True
+                    displayMine = True
 
             player.update()
             all_enemy.update(player.rect.x)
 
-            DISPLAYSURF.blit(background,(0,0))
+            
+            DISPLAYSURF.blit(level1Background,(0,-40))
+            pygame.draw.rect(DISPLAYSURF, BLACK, (0,0, 720, 330))
             all_enemy.draw(DISPLAYSURF)
+            if enemiesDefeated:
+                DISPLAYSURF.blit(level3Finish, (650,330))
             DISPLAYSURF.blit(player.image, player.rect)
             DISPLAYSURF.blit(floor.image, floor.rect)
+
+
 
             pygame.display.flip()
 

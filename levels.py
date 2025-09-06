@@ -1425,8 +1425,8 @@ levelMap7 = [
 #              numbers represent the amount of space in units of 32 pixels to space out the next enemey in the sequence.
 #              letters represent different types of enemies.
 levelMap8 = [
-	[],
-	[],
+	['a','5','a','2','b','2','b','3','b','8','a','7','a'],
+	['b','3','a','4','b','3','a','2','a','3','a','6','b'],
 ]
 
 levelMap9 = [
