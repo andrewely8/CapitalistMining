@@ -21,6 +21,7 @@ CHECKLIST
 import pygame, sys, math
 import time as Time
 from decimal import Decimal
+import random
 from upgradeItems import *
 from storeItems import *
 from levels import *
@@ -89,6 +90,8 @@ squid = pygame.image.load('pngImages/squid.png')
 fish = pygame.image.load('pngImages/fish.png')
 level6Background = pygame.image.load('pngImages/level6Background.png')
 level1Background = pygame.image.load('pngImages/level1Background.png')
+level4Background = pygame.image.load('pngImages/level4Background.png')
+level10Lava = pygame.image.load('pngImages/level10Lava.png')
 minerSwimmingIdle = pygame.image.load('pngImages/minerSwimmingIdle.png')
 minerSwimming1 = pygame.image.load('pngImages/minerSwimming1.png')
 minerSwimming2 = pygame.image.load('pngImages/minerSwimming2.png')
@@ -102,6 +105,19 @@ minerTopView6 = pygame.image.load('pngImages/minerTopView6.png')
 minerTopView7 = pygame.image.load('pngImages/minerTopView7.png')
 minerTopView8 = pygame.image.load('pngImages/minerTopView8.png')
 minerTopViewIdle = pygame.image.load('pngImages/minerTopViewIdle.png')
+minerLeftJump = pygame.image.load('pngImages/minerLeftJump.png')
+minerRightJump = pygame.image.load('pngImages/minerRightJump.png')
+
+batStill = pygame.image.load('pngImages/batStill.png')
+bat1 = pygame.image.load('pngImages/bat1.png')
+bat2 = pygame.image.load('pngImages/bat2.png')
+skeleton1 = pygame.image.load('pngImages/skeleton1.png')
+skeleton2 = pygame.image.load('pngImages/skeleton2.png')
+
+ratRight1 = pygame.image.load('pngImages/ratRight1.png')
+ratRight2 = pygame.image.load('pngImages/ratRight2.png')
+ratLeft1 = pygame.image.load('pngImages/ratLeft1.png')
+ratLeft2 = pygame.image.load('pngImages/ratLeft2.png')
 
 #fonts
 font1 = pygame.font.SysFont('monaco', 24)
@@ -759,6 +775,100 @@ class Player(pygame.sprite.Sprite):
         else:
             self.image = minerIdle
 
+class PlayerLevel10(pygame.sprite.Sprite):
+    def __init__(self,x,y):
+        super().__init__()
+        self.image = minerIdle
+        self.rect = self.image.get_rect(topleft=(x,y))
+        self.direction = 0
+        self.isJumping = False
+        self.startingY = self.rect.y
+        self.isGrounded = False
+
+    def update(self):
+        if self.isJumping:
+            player.rect.y -= 12
+        if self.rect.y <= self.startingY - 120:
+            self.isJumping = False
+
+        if self.direction == 0:
+            if self.isJumping:
+                self.image = minerIdleJump
+            else:
+                self.image = minerIdle
+
+        if self.direction == 1:
+            if self.isJumping:
+                self.image = minerLeftJump
+            elif frame <= 30:
+                self.image = minerLeftWalk
+            else:
+                self.image = minerLeftWalk2
+        if self.direction == 2:
+            if self.isJumping:
+                self.image = minerRightJump
+            elif frame <= 30:
+                self.image = minerRightWalk
+            else:
+                self.image = minerRightWalk2
+
+class LavaLevel10(pygame.sprite.Sprite):
+    def __init__(self,x,y):
+        super().__init__()
+        self.image = level10Lava
+        self.rect = self.image.get_rect(topleft=(x,y))
+        self.topOut = False
+
+    def update(self, scrollSpeed):
+        if self.rect.y >= 700 and not self.topOut:
+            self.rect.y -= scrollSpeed
+        if self.topOut and self.rect.y >= 240:
+            self.rect.y -= scrollSpeed*2
+
+class FinishBlockLevel10(pygame.sprite.Sprite):
+    def __init__(self,x,y):
+        super().__init__()
+        self.image = level3Finish
+        self.rect = self.image.get_rect(topleft=(x,y))
+    def update(self, scrollSpeed):
+        if self.rect.y <= 75:
+            self.rect.y += scrollSpeed
+
+class floorBlockLevel10(pygame.sprite.Sprite):
+    def __init__(self,x,y):
+        super().__init__()
+        self.image = pygame.Surface((32,32))
+        self.image.fill((0,0,0))
+        self.rect = self.image.get_rect(topleft=(x,y))
+
+    def update(self, scrollSpeed):
+        self.rect.y += scrollSpeed
+
+        if self.rect.y >= 900:
+            self.kill()
+        
+class topFloorBlockLevel10(pygame.sprite.Sprite):
+    def __init__(self,x,y):
+        super().__init__()
+        self.image = pygame.Surface((32,32))
+        self.image.fill((0,0,0))
+        self.rect = self.image.get_rect(topleft=(x,y))
+    def update(self, scrollSpeed):
+        if self.rect.y <= 200:
+            self.rect.y += scrollSpeed
+        else:
+            global level10StopScrolling
+            level10StopScrolling = True
+
+class Level10Background(pygame.sprite.Sprite):
+    def __init__(self,x,y):
+        super().__init__()
+        self.image = level1Background
+        self.rect = self.image.get_rect(topleft=(x,y))
+
+    def update(self, scrollSpeed):
+        self.rect.y += scrollSpeed
+
 class Level1Background(pygame.sprite.Sprite):
     def __init__(self,x,y):
         super().__init__()
@@ -1093,6 +1203,65 @@ class Level6Finish(pygame.sprite.Sprite):
         self.rect.x += (playerSpeed-1)*direction
 
 
+class Level8Player(pygame.sprite.Sprite):
+    def __init__(self,x,y):
+        super().__init__()
+        self.image = minerIdle
+        self.rect = self.image.get_rect(topleft=(x,y))
+        self.direction = 0   #  different than playerDirection variable and param
+
+    def update(self):
+        if self.direction == 1:
+            if frame <= 30:
+                self.image = minerLeftWalk
+            else:
+                self.image = minerLeftWalk2
+        if self.direction == 2:
+            if frame <= 30:
+                self.image = minerRightWalk
+            else:
+                self.image = minerRightWalk2
+        else:
+            self.image = minerIdle
+
+class Level8Enemy1(pygame.sprite.Sprite):
+    def __init__(self,x,y):
+        super().__init__()
+        self.image = pygame.Surface((32,32))
+        self.rect = self.image.get_rect(topleft=(x,y))
+        self.image.fill((0,0,0))
+        self.direction = 0   #  different than playerDirection variable and param
+
+    def update(self, playerPosX):
+        if self.rect.x <= playerPosX:
+            self.rect.x += 1
+        if self.rect.x >= playerPosX:
+            self.rect.x -= 1
+
+class Level8Enemy2(pygame.sprite.Sprite):
+    def __init__(self,x,y):
+        super().__init__()
+        self.image = pygame.Surface((32,32))
+        self.rect = self.image.get_rect(topleft=(x,y))
+        self.image.fill((0,0,0))
+        self.direction = 0   #  different than playerDirection variable and param
+
+    def update(self, playerPosX):
+        if self.rect.x <= playerPosX:
+            self.rect.x += 1
+        if self.rect.x >= playerPosX:
+            self.rect.x -= 1
+
+class Level8Floor(pygame.sprite.Sprite):
+    def __init__(self,x,y):
+        super().__init__()
+        self.image = pygame.Surface((0,820))
+        self.rect = self.image.get_rect(topleft=(x,y))
+        self.image.fill((0,0,0))
+
+    def update(self):
+        pass
+
         
 
 pipesInitial = [
@@ -1160,6 +1329,174 @@ def add_edge(adj, s, t):
     adj[s][t] = 1
     adj[t][s] = 1  # Since it's an undirected graph
 
+
+class Level4FloorBlock(pygame.sprite.Sprite):
+    def __init__(self,x,y):
+        super().__init__()
+        self.image = pygame.Surface((32,32))
+        self.image.fill((0,0,0))
+        self.rect = self.image.get_rect(topleft=(x,y))
+
+    def update(self, scrollSpeed):
+        self.rect.x -= scrollSpeed
+
+class Level4Finish(pygame.sprite.Sprite):
+    def __init__(self,x,y):
+        super().__init__()
+        self.image = pygame.Surface((32,32))
+        self.rect = self.image.get_rect(topleft=(x,y))
+    
+    def update(self, scrollSpeed):
+        self.rect.x -= scrollSpeed
+
+class Level4ExitSign(pygame.sprite.Sprite):
+    def __init__(self,x,y):
+        super().__init__()
+        self.image = level3Finish
+        self.rect = self.image.get_rect(topleft=(x,y))
+    
+    def update(self, scrollSpeed):
+        self.rect.x -= scrollSpeed
+
+class Level4Player(pygame.sprite.Sprite):
+    def __init__(self,x,y):
+        super().__init__()
+        self.image = minerIdle
+        self.rect = self.image.get_rect(topleft=(x,y))
+        self.direction = 0 #0:idle  1:left  2:right  3:up  4:down
+        self.isJumping = False
+        self.startingY = self.rect.y
+        self.isGrounded = False
+
+ 
+    def update(self):
+        if self.isJumping:
+            player.rect.y -= 12
+        if self.rect.y <= self.startingY - 120:
+            self.isJumping = False
+
+        if self.direction == 0:
+            if self.isJumping:
+                self.image = minerIdleJump
+            else:
+                self.image = minerIdle
+
+        if self.direction == 1:
+            if self.isJumping:
+                self.image = minerLeftJump
+            elif frame <= 30:
+                self.image = minerLeftWalk
+            else:
+                self.image = minerLeftWalk2
+        if self.direction == 2:
+            if self.isJumping:
+                self.image = minerRightJump
+            elif frame <= 30:
+                self.image = minerRightWalk
+            else:
+                self.image = minerRightWalk2
+
+class Level4Dynamite(pygame.sprite.Sprite):
+    def __init__(self,x,y):
+        super().__init__()
+        self.image = dynamite
+        self.rect = self.image.get_rect(topleft=(x,y))
+
+    def update(self, scrollSpeed):
+        self.rect.x -= scrollSpeed
+
+class Level4Enemy1(pygame.sprite.Sprite):
+    def __init__(self,x,y):
+        super().__init__()
+        self.image = ratRight2
+        self.rect = self.image.get_rect(topleft=(x,y))
+        self.speed = 1
+        self.direction = 1
+
+    def update(self, scrollSpeed):
+        self.rect.x -= scrollSpeed
+
+        self.rect.x += self.direction * self.speed
+
+        if self.direction == 1:
+            if frame <= 30:
+                self.image = ratRight2
+            else:
+                self.image = ratRight1
+        if self.direction == -1:
+            if frame <= 30:
+                self.image = ratLeft2
+            else:
+                self.image = ratLeft1
+
+class Level4Enemy2(pygame.sprite.Sprite):
+    def __init__(self,x,y):
+        super().__init__()
+        self.image = batStill
+        self.rect = self.image.get_rect(topleft=(x,y))
+        self.spotted = False
+        self.swoop = False
+        self.xCor = 81
+        self.yInitial = y
+        self.endPath = False
+
+    def update(self, scrollSpeed):
+        self.rect.x -= scrollSpeed
+
+        if self.spotted:
+            if frame <= 30:
+                self.image = bat2
+            else:
+                self.image = bat1
+
+            yCor = 0.001*self.xCor**2
+            self.rect.x -= 1
+            if self.xCor >= 0:
+                self.rect.y += yCor
+            if self.xCor < 0:
+                self.rect.y -= yCor
+            self.xCor -= 1
+
+            if self.rect.y < self.yInitial-64:
+                self.spotted = False
+                self.endPath = True
+        if self.endPath:
+            self.rect.x -=1
+            self.rect.y -=1
+
+
+        if self.rect.y <= 0:
+            self.kill()
+
+class Level4Enemy3(pygame.sprite.Sprite):
+    def __init__(self,x,y):
+        super().__init__()
+        self.image = skeleton1
+        self.rect = self.image.get_rect(topleft=(x,y))
+        self.direction = 0 #1:left  2:right  3:up  4:down
+        self.isJumping = False
+        self.startingY = self.rect.y
+        self.isGrounded = True
+ 
+    def update(self, scrollSpeed):
+        self.rect.x -= scrollSpeed
+
+        if self.isJumping:
+            self.image = skeleton2
+            self.rect.y -= 9
+        if self.rect.y <= self.startingY - 150:
+            self.isJumping = False
+        if self.isGrounded:
+            self.image = skeleton1
+
+class BackgroundLevel4(pygame.sprite.Sprite):
+    def __init__(self,x,y):
+        super().__init__()
+        self.image = level4Background
+        self.rect = self.image.get_rect(topleft=(x,y))
+ 
+    def update(self, scrollSpeed):
+        self.rect.x -= scrollSpeed
 
 #Game loop
 initializeLevel = True
@@ -1509,8 +1846,74 @@ while running:
 
 
         #level 4, navigate to the end through enemies (like a standard mario level)
-        if currentLevel == 3:
+        if currentLevel == 3 or currentLevel == 5:
             if initializeLevel: 
+
+                all_floors = pygame.sprite.Group()
+                all_dynamite = pygame.sprite.Group()
+                all_enemey1 = pygame.sprite.Group()
+                all_enemey2 = pygame.sprite.Group()
+                all_enemey3 = pygame.sprite.Group()
+                finish_blocks = pygame.sprite.Group()
+                all_backgrounds = pygame.sprite.Group()
+                scroll_sprites = pygame.sprite.Group()
+
+                scrollSpeed = 3
+                playerSpeed = 3
+                gravity = 5
+                step = 0
+                stepX = 0
+                if currentLevel == 3:
+                    levelMap = levelMap3
+                if currentLevel == 5:
+                    levelMap = levelMap5
+                for i, row in enumerate(levelMap):
+                    currentY = (step * 32)
+                    if (i+1) % 28 == 0: 
+                        step = 0
+                        stepX +=1
+                    else:
+                        step+=1
+                    for j, block in enumerate(row):
+                        currentX = stepX*704+(j*32)
+                        if block == 'b':
+                            new_floor = Level4FloorBlock(currentX, currentY)
+                            all_floors.add(new_floor)
+                            scroll_sprites.add(new_floor)
+                        if block == 'p':
+                            player = Level4Player(currentX, currentY)
+                        if block == 'd':
+                            new_block = Level4Dynamite(currentX, currentY)
+                            scroll_sprites.add(new_block)
+                            all_dynamite.add(new_block)
+                        if block == '1':
+                            new_block = Level4Enemy1(currentX,currentY+16)
+                            scroll_sprites.add(new_block)
+                            all_enemey1.add(new_block)
+                        if block == '2':
+                            new_block = Level4Enemy2(currentX,currentY)
+                            scroll_sprites.add(new_block)
+                            all_enemey2.add(new_block)
+                        if block == '3':
+                            new_block = Level4Enemy3(currentX, currentY)
+                            scroll_sprites.add(new_block)
+                            all_enemey3.add(new_block)
+                        if block == 'f':
+                            new_block = Level4Finish(currentX, currentY)
+                            scroll_sprites.add(new_block)
+                            finish_blocks.add(new_block)
+                        if block == 'e':
+                            finishSign = Level4ExitSign(currentX,currentY)
+                            scroll_sprites.add(finishSign)
+
+                background1 = BackgroundLevel4(0,0)
+                background2 = BackgroundLevel4(2160,0)
+                background3 = BackgroundLevel4(4320,0)
+                background4 = BackgroundLevel4(6480,0)
+                background5 = BackgroundLevel4(8640,0)
+                scroll_sprites.add(background1, background2, background3, background4, background5)
+                all_backgrounds.add(background1, background2, background3, background4, background5)
+
                 initializeLevel = False
 
             mouse_pressed = pygame.mouse.get_pressed()
@@ -1520,17 +1923,102 @@ while running:
                     pygame.quit()
                     sys.exit()
 
-            if mouse_pressed[0]: #Level failed
+            old_x, old_y = player.rect.x, player.rect.y
+            keys = pygame.key.get_pressed()
+
+            if keys[pygame.K_a]:
+                player.rect.x -= playerSpeed
+                player.direction = 1
+            if keys[pygame.K_d]:
+                player.rect.x += playerSpeed
+                player.direction = 2
+            if pygame.sprite.spritecollide(player, all_floors, False):
+                player.rect.x = old_x
+
+            if keys[pygame.K_SPACE] and player.isGrounded:
+                player.isJumping = True
+                player.isGrounded = False
+                player.startingY = player.rect.y
+
+
+
+            player.rect.y += gravity
+            collisions = pygame.sprite.spritecollide(player,all_floors,False)
+            if collisions:
+                if not player.isJumping:
+                    player.rect.bottom = collisions[0].rect.top
+                    player.isGrounded = True
+                if player.isJumping and player.rect.y <= player.startingY-32:
+                    player.isJumping = False
+                    
+
+            if not keys[pygame.K_w] and not keys[pygame.K_s] and not keys[pygame.K_a] and not keys[pygame.K_d]:
+                player.direction = 0
+
+            for enemey in all_enemey1:
+                collisions = pygame.sprite.spritecollide(enemey, all_floors, False)
+                if collisions:
+                    enemey.direction = enemey.direction * -1
+
+
+            for enemey in all_enemey2:
+                distance = math.sqrt((player.rect.x-enemey.rect.x)**2+(player.rect.y-enemey.rect.y)**2)
+                if distance <= 200:
+                    enemey.spotted = True
+
+            for enemey in all_enemey3:
+                enemey.rect.y += gravity//2
+                if enemey.isGrounded == True:
+                    if frame >= 59:
+                        random_int   = random.randint(1,10)
+                        if random_int <= 5 and enemey.isGrounded:
+                            enemey.isGrounded = False
+                            enemey.startingY = enemey.rect.y
+                            enemey.isJumping = True
+                            
+                collisions = pygame.sprite.spritecollide(enemey,all_floors,False)
+                if collisions:
+                    enemey.rect.bottom = collisions[0].rect.top
+                    enemey.isGrounded = True
+
+            if (pygame.sprite.spritecollide(player,all_enemey1,False) or 
+            pygame.sprite.spritecollide(player,all_enemey2,False) or
+            pygame.sprite.spritecollide(player,all_enemey3,False) or
+            pygame.sprite.spritecollide(player,all_dynamite,False)): #Level failed
                 levelActive = False
                 initializeLevel = True
                 displayMine = True
-            if mouse_pressed[2]: #Level Completed
+            if pygame.sprite.spritecollide(player, finish_blocks, False): #Level Completed
                 levelActive = False
                 initializeLevel = True
                 levelSelect[3]['completed'] = True
                 displayMine = True
 
-            DISPLAYSURF.blit(background,(0,0))
+
+            if player.rect.x <= 240:
+                currentScroll = -1 * scrollSpeed
+                player.rect.x += playerSpeed
+            elif player.rect.x >= 480:
+                currentScroll = scrollSpeed
+                player.rect.x -= playerSpeed
+            else:
+                currentScroll = 0
+
+
+            player.update()
+            scroll_sprites.update(currentScroll)
+
+            all_backgrounds.draw(DISPLAYSURF)
+            all_floors.draw(DISPLAYSURF)
+            all_dynamite.draw(DISPLAYSURF)
+            all_enemey1.draw(DISPLAYSURF)
+            all_enemey2.draw(DISPLAYSURF)
+            all_enemey3.draw(DISPLAYSURF)
+            finish_blocks.draw(DISPLAYSURF)
+            DISPLAYSURF.blit(finishSign.image,finishSign.rect)
+            DISPLAYSURF.blit(player.image, player.rect)
+            pygame.draw.rect(DISPLAYSURF, RED, player.rect, 2)
+            
             pygame.display.flip()
 
 
@@ -1670,30 +2158,7 @@ while running:
             
             pygame.display.flip()
 
-        #level 6, navigate to the end through enemies (like a standard mario level)
-        if currentLevel == 5:
-            if initializeLevel: 
-                initializeLevel = False
-
-            mouse_pressed = pygame.mouse.get_pressed()
-            mouse_pos = pygame.mouse.get_pos()
-            for event in pygame.event.get(): 
-                if event.type == pygame.QUIT:
-                    pygame.quit()
-                    sys.exit()
-
-            if mouse_pressed[0]: #Level failed
-                levelActive = False
-                initializeLevel = True
-                displayMine = True
-            if mouse_pressed[2]: #Level Completed
-                levelActive = False
-                initializeLevel = True
-                levelSelect[5]['completed'] = True
-                displayMine = True
-
-            DISPLAYSURF.blit(background,(0,0))
-            pygame.display.flip()
+        
 
         #level 7, underwater avoid enemies and don't run out of breath 
         if currentLevel == 6:
@@ -1856,7 +2321,42 @@ while running:
 
         #level 9, Waves of enemies coming from both left and right and you need to defeat them all
         if currentLevel == 8:
-            if initializeLevel: 
+            if initializeLevel:
+
+                player = Level8Player(350,468)
+                floor = Level8Floor(-50,500)
+                all_enemy1 = pygame.sprite.Group()
+                all_enemy2 = pygame.sprite.Group()
+                all_enemy = pygame.sprite.Group()
+                playerSpeed = 3
+                spawnLevelY = 500
+
+                currentX = 0
+                for item in levelMap8[0]: #enemies that come from the left
+                    if item == 'a': #enemy type
+                        e = Level8Enemy1(CurrentX, spawnLevelY)
+                        all_enemey1.add(e)
+                        all_enemy.add(e)
+                    elif item == 'b': #enemey type
+                        e = Level8Enemy2(CurrentX, spawnLevelY)
+                        all_enemey2.add(e)
+                        all_enemy.add(e)
+                    else: #number representing amount of space of 32 pixels to add
+                        currentX -= int(item) * 32
+
+                currentX = 720
+                for item in levelMap8[1]: #enemies that come from the right
+                    if item == 'a': #enemy type
+                        e = Level8Enemy1(CurrentX, spawnLevelY)
+                        all_enemey1.add(e)
+                        all_enemy.add(e)
+                    elif item == 'b': #enemey type
+                        e = Level8Enemy2(CurrentX, spawnLevelY)
+                        all_enemey2.add(e)
+                        all_enemy.add(e)
+                    else: #number representing amount of space of 32 pixels to add
+                        currentX += int(item) * 32
+                
                 initializeLevel = False
 
             mouse_pressed = pygame.mouse.get_pressed()
@@ -1865,6 +2365,14 @@ while running:
                 if event.type == pygame.QUIT:
                     pygame.quit()
                     sys.exit()
+
+            keys = pygame.key.get_pressed()
+            if keys[pygame.K_a] and player.rect.x >= 8:
+                player.rect.x -= playerSpeed
+                player.direction = 1
+            if keys[pygame.K_d] and player.rect.x <= 680:
+                player.rect.x += playerSpeed
+                player.direction = 2
 
             if mouse_pressed[0]: #Level failed
                 levelActive = False
@@ -1876,30 +2384,133 @@ while running:
                 levelSelect[3]['completed'] = True
                 displayMine = True
 
+            player.update()
+            all_enemy.update(player.rect.x)
+
             DISPLAYSURF.blit(background,(0,0))
+            all_enemy.draw(DISPLAYSURF)
+            DISPLAYSURF.blit(player.image, player.rect)
+            DISPLAYSURF.blit(floor.image, floor.rect)
+
             pygame.display.flip()
 
         #level 10, an upscrolling and side scrolling escape, avoid getting stuck
         if currentLevel == 9:
             if initializeLevel: 
+
+                scrollSpeed = 1
+                level10StopScrolling = False
+                gravity = 6
+
+                all_backgrounds = pygame.sprite.Group()
+                all_floors = pygame.sprite.Group()
+                bottom_floors = pygame.sprite.Group()
+
+                offset = 0
+                for i, row in enumerate(levelMap9):
+                    currentY = (i * 32)  - 900*((len(levelMap9)-28)/28)
+                    for j, block in enumerate(row):
+                        currentX = 8+ (j * 32)
+                        if block == 'p':
+                            player = PlayerLevel10(currentX,currentY)
+                        if block == 'b':
+                            new_floor = floorBlockLevel10(currentX, currentY)
+                            all_floors.add(new_floor)
+                        if block == 'e':
+                            new_floor = topFloorBlockLevel10(currentX, currentY)
+                            bottom_floors.add(new_floor)
+                        if block == 'f':
+                            finish = FinishBlockLevel10(currentX, currentY)
+
+                
+                background1 = Level10Background(0,0)
+                background2 = Level10Background(0,-900)
+                background3 = Level10Background(0,-1800)
+                background4 = Level10Background(0,-2700)
+                all_backgrounds.add(background1, background2, background3, background4)
+
+                lava = LavaLevel10(0,880)
+
                 initializeLevel = False
 
             mouse_pressed = pygame.mouse.get_pressed()
             mouse_pos = pygame.mouse.get_pos()
             for event in pygame.event.get(): 
                 if event.type == pygame.QUIT:
+
                     pygame.quit()
                     sys.exit()
 
-            if mouse_pressed[0]: #Level failed
+            old_x, old_y = player.rect.x, player.rect.y
+            keys = pygame.key.get_pressed()
+
+            if keys[pygame.K_a] and player.rect.x >= 8:
+                player.rect.x -= 3
+                player.direction = 1
+            if keys[pygame.K_d] and player.rect.x <= 680:
+                player.rect.x += 3
+                player.direction = 2
+            if pygame.sprite.spritecollide(player, all_floors, False):
+                player.rect.x = old_x
+
+            if not keys[pygame.K_a] and not keys[pygame.K_d]:
+                player.direction = 0
+
+            player.rect.y += gravity
+            if keys[pygame.K_SPACE] and player.isGrounded and player.isJumping == False:
+                player.isJumping = True
+                player.isGrounded = False 
+                player.startingY = player.rect.y
+
+            collisions = pygame.sprite.spritecollide(player, all_floors, False)
+            if collisions:
+                if not player.isJumping:
+                    player.rect.bottom = collisions[0].rect.top
+                    player.isGrounded = True
+                if player.isJumping and player.rect.y <= player.startingY-32:
+                    player.isJumping = False
+
+            collisions = pygame.sprite.spritecollide(player, bottom_floors, False)
+            if collisions:
+                if not player.isJumping:
+                    player.rect.bottom = collisions[0].rect.top
+                    player.isGrounded = True
+                if player.isJumping and player.rect.y <= player.startingY-32:
+                    player.isJumping = False
+            
+
+            if  pygame.sprite.collide_rect(player, lava):
                 levelActive = False
                 initializeLevel = True
-                displayMine = True
-            if mouse_pressed[2]: #Level Completed
-                levelActive = False
-                initializeLevel = True
-                levelSelect[3]['completed'] = True
                 displayMine = True
 
-            DISPLAYSURF.blit(background,(0,0))
+            if pygame.sprite.collide_rect(player, finish):
+                levelActive = False
+                initializeLevel = True
+                levelSelect[9]['completed'] = True
+                displayMine = True
+
+
+            player.update()
+            finish.update(scrollSpeed)
+            bottom_floors.update(scrollSpeed)
+            lava.update(scrollSpeed)
+
+            if level10StopScrolling == False:
+                all_backgrounds.update(scrollSpeed)
+                all_floors.update(scrollSpeed)
+            else:
+                lava.topOut = True
+            
+
+
+            all_backgrounds.draw(DISPLAYSURF)
+            pygame.draw.rect(DISPLAYSURF, BLACK, (0,0,8,900))
+            pygame.draw.rect(DISPLAYSURF, BLACK, (712,0,8,900))
+            all_floors.draw(DISPLAYSURF)
+            bottom_floors.draw(DISPLAYSURF)
+            DISPLAYSURF.blit(player.image, player.rect)
+            DISPLAYSURF.blit(finish.image,finish.rect)
+            DISPLAYSURF.blit(lava.image,lava.rect)
+
             pygame.display.flip()
