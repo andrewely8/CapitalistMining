@@ -14,3 +14,12 @@ This game combines an idle clicker with a 2D sidescrolling element.
 
 3. Run the game (main.py)
    python main.py
+
+
+Gameplay
+
+![til](./DemonstrationVideos/GameplayGif1.gif)
+
+![til](./DemonstrationVideos/GameplayGif2.gif)
+
+![til](./DemonstrationVideos/GameplayGif3.gif)
