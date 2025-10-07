@@ -1,23 +1,5 @@
 #capitalistMining Created by Andrew Ely
 
-
-'''
-
-CHECKLIST
----------
-- All businesses milestones
-- All business upgrades 
-- upgrade values
-- cash per second total
-- cash per second per business
-- cash per second per business dynamic ranking (best earners are indetified on screen)
-- idle cash gain between game sessions 
-- save data 
-- "Angel Investors" / resets
-
-'''
-
-
 import pygame, sys, math
 import time as Time
 from decimal import Decimal
@@ -1630,7 +1612,7 @@ while running:
             if pygame.sprite.collide_rect(player, finish):
                 levelActive = False
                 initializeLevel = True
-                levelSelect[0]['completed'] = True
+                levelSelect[currentLevel]['completed'] = True
                 displayMine = True
 
 
@@ -1706,7 +1688,7 @@ while running:
             if pygame.sprite.collide_rect(player, finish):
                 levelActive = False
                 initializeLevel = True
-                levelSelect[1]['completed'] = True
+                levelSelect[currentLevel]['completed'] = True
                 displayMine = True
             if pygame.sprite.collide_rect(player, torch):
                 torch.collected = True
@@ -1798,7 +1780,7 @@ while running:
             if player.rect.x >= 704 and finish:
                 levelActive = False
                 initializeLevel = True
-                levelSelect[2]['completed'] = True
+                levelSelect[currentLevel]['completed'] = True
                 displayMine = True
             
             
@@ -2029,7 +2011,7 @@ while running:
             if pygame.sprite.spritecollide(player, finish_blocks, False): #Level Completed
                 levelActive = False
                 initializeLevel = True
-                levelSelect[3]['completed'] = True
+                levelSelect[currentLevel]['completed'] = True
                 displayMine = True
 
 
@@ -2141,7 +2123,7 @@ while running:
             if pygame.sprite.collide_rect(player, finish):
                 levelActive = False
                 initializeLevel = True
-                levelSelect[4]['completed'] = True
+                levelSelect[currentLevel]['completed'] = True
                 displayMine = True
             
             if pygame.sprite.spritecollide(player, straight_rails, False):
@@ -2309,7 +2291,7 @@ while running:
             if pygame.sprite.spritecollide(player, all_finish, False):
                 levelActive = False
                 initializeLevel = True
-                levelSelect[6]['completed'] = True
+                levelSelect[currentLevel]['completed'] = True
                 displayMine = True
 
             for enemey in all_enemey2:
@@ -2351,7 +2333,7 @@ while running:
             if mouse_pressed[2]: #Level Completed
                 levelActive = False
                 initializeLevel = True
-                levelSelect[3]['completed'] = True
+                levelSelect[currentLevel]['completed'] = True
                 displayMine = True
 
             DISPLAYSURF.blit(background,(0,0))
@@ -2430,7 +2412,7 @@ while running:
             if enemiesDefeated and player.rect.x >= 700:
                 levelActive = False
                 initializeLevel = True
-                levelSelect[8]['completed'] = True
+                levelSelect[currentLevel]['completed'] = True
                 displayMine = True
 
             collisions = pygame.sprite.spritecollide(player, all_enemy, False)
@@ -2563,7 +2545,7 @@ while running:
             if pygame.sprite.collide_rect(player, finish):
                 levelActive = False
                 initializeLevel = True
-                levelSelect[9]['completed'] = True
+                levelSelect[currentLevel]['completed'] = True
                 displayMine = True
 
 
