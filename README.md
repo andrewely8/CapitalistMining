@@ -10,7 +10,7 @@ To run locally,
 
 1. Clone the repository:
 
-   git clone https://github.com/andrewely8/CapitalistMining
+   git clone `https://github.com/andrewely8/CapitalistMining`
 
    cd CapitalistMining/CapitalistMining
 
@@ -30,7 +30,7 @@ To run locally,
 
 
 
-🎮 Gameplay
+🎮 Gameplay (The game runs smoothly at 60 fps, the following are GIFs with reduced frame rate.)
 
 ![til](./DemonstrationVideos/GameplayGif1.gif)
 
