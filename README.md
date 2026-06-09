@@ -1,16 +1,18 @@
-A game created with the pygame python library.
+This is a game created with the pygame python library. This game combines an idle-clicker with a 2D platformer. The goal of the game is to beat all 10 levels in the "Mine", which are unlocked by earning money in the "Store".
 
-Run file main.py to start the game.
+To play the game, visit the live website:
 
-This game combines an idle clicker with a 2D sidescrolling element.
+https://andrewely8.github.io/CapitalistMining/build/web/index.html
 
-🎮 How to Run
+The python code is ran in the browser using the pygbag library.
+
+To run locally,
 
 1. Clone the repository:
 
    git clone https://github.com/andrewely8/CapitalistMining
 
-   cd CapitalistMining
+   cd CapitalistMining/CapitalistMining
 
 
 
@@ -27,7 +29,8 @@ This game combines an idle clicker with a 2D sidescrolling element.
 
 
 
-Gameplay
+
+🎮 Gameplay
 
 ![til](./DemonstrationVideos/GameplayGif1.gif)
 
