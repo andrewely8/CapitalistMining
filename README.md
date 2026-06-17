@@ -25,7 +25,7 @@ To run locally,
 3. Run the game (main.py)
 
    python main.py
-
+chrome
 
 
 

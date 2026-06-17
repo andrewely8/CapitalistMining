@@ -6,7 +6,6 @@ logo = pygame.image.load('gameAssets/logo.png')
 menu = pygame.image.load('gameAssets/menu.png')
 storeBoard = pygame.image.load('gameAssets/storeBoard.png')
 managerBoard = pygame.image.load('gameAssets/managerBoard.png')
-mainMenu = pygame.image.load('gameAssets/mainMenu.png')
 background = pygame.image.load('gameAssets/background.png')
 itemSillouete = pygame.image.load('gameAssets/nextItemSillouete.png')
 upgradeBoard = pygame.image.load('gameAssets/upgradeBoard.png')
@@ -81,12 +80,15 @@ volume1 = pygame.image.load('gameAssets/volume1.png')
 volume2 = pygame.image.load('gameAssets/volume2.png')
 volume3 = pygame.image.load('gameAssets/volume3.png')
 volume4 = pygame.image.load('gameAssets/volume4.png')
+levelPlayMusic = "gameAssets/audio/levelPlay.ogg"
+gameMusic = "gameAssets/audio/backgroundMusic.ogg"
 
 
 class Arrow(pygame.sprite.Sprite):
 	def __init__(self,arrowDir,startX,startY):
 		super().__init__()
 		self.bounceRange = 10
+		self.animationSpeed = 3
 		self.image = arrow
 		self.arrowDir = arrowDir
 		self.startX = startX
@@ -94,19 +96,13 @@ class Arrow(pygame.sprite.Sprite):
 		self.rewind = False
 		if self.arrowDir == "left":
 			self.image = pygame.transform.flip(self.image,True,False)
-			self.rect = self.image.get_rect(topleft=(startX,startY))
-		elif self.arrowDir == "right":
-			self.rect = self.image.get_rect(topleft=(startX,startY))
 		elif self.arrowDir == "down":
 			self.image = pygame.transform.rotate(self.image,-90)
-			self.rect = self.image.get_rect(topleft=(startX,startY))
 		elif self.arrowDir == "up":
 			self.image = pygame.transform.rotate(self.image,90)
-			self.rect = self.image.get_rect(topleft=(startX,startY))
-		
-
+		self.rect = self.image.get_rect(topleft=(startX,startY))
 	def update(self,frame):
-		if frame % 3 == 0: #slow animation speed down
+		if frame % self.animationSpeed == 0: #slow animation speed down
 			if self.arrowDir == "left":
 				if self.rect.x <= self.startX+self.bounceRange and not self.rewind:
 					self.rect.x+=1
@@ -144,7 +140,6 @@ class Arrow(pygame.sprite.Sprite):
 					if self.rect.y <= self.startY:
 						self.rewind = False
 
-
 class Player(pygame.sprite.Sprite):
 	def __init__(self,x,y):
 		super().__init__()
@@ -153,7 +148,6 @@ class Player(pygame.sprite.Sprite):
 		self.hitboxOffset = (8,6)
 		self.direction = 0
 		self.animationSpeed = 15
-
 	def update(self,frame):
 		if self.direction == -1:
 			if frame%self.animationSpeed <= self.animationSpeed//2:
@@ -170,65 +164,15 @@ class Player(pygame.sprite.Sprite):
 		else:
 			self.image = minerIdle
 
-class PlayerLevel10(pygame.sprite.Sprite):
+class Level1Background(pygame.sprite.Sprite):
 	def __init__(self,x,y):
 		super().__init__()
-		self.image = minerIdle
-		self.rect = pygame.Rect(x,y,16,26)
-		self.hitboxOffset = (8,6)
-		self.direction = 0
-		self.isJumping = False
-		self.startingY = self.rect.y
-		self.isGrounded = False
-
-	def update(self,frame):
-		if self.rect.y <= self.startingY - 110:
-			self.isJumping = False
-
-		if self.direction == 0:
-			if self.isJumping:
-				self.image = minerIdleJump
-			else:
-				self.image = minerIdle
-
-		if self.direction == 1:
-			if self.isJumping:
-				self.image = minerLeftJump
-			elif frame <= 30:
-				self.image = minerLeftWalk
-			else:
-				self.image = minerLeftWalk2
-		if self.direction == 2:
-			if self.isJumping:
-				self.image = minerRightJump
-			elif frame <= 30:
-				self.image = minerRightWalk
-			else:
-				self.image = minerRightWalk2
-
-class LavaLevel10(pygame.sprite.Sprite):
-	def __init__(self,x,y):
-		super().__init__()
-		self.image = level10Lava
-		self.rect = self.image.get_rect(topleft=(x,y))
-		self.topOut = False
-
-	def update(self, scrollSpeed):
-		if self.rect.y >= 700 and not self.topOut:
-			self.rect.y -= scrollSpeed
-		if self.topOut and self.rect.y >= 240:
-			self.rect.y -= scrollSpeed*2
-
-class FinishBlockLevel10(pygame.sprite.Sprite):
-	def __init__(self,x,y):
-		super().__init__()
-		self.image = level3Finish
+		self.image = level1Background
 		self.rect = self.image.get_rect(topleft=(x,y))
 	def update(self, scrollSpeed):
-		if self.rect.y <= 75:
-			self.rect.y += scrollSpeed
+		self.rect.y -= scrollSpeed
 
-class floorBlockLevel10(pygame.sprite.Sprite):
+class floorBlock(pygame.sprite.Sprite):
 	def __init__(self,x,y):
 		super().__init__()
 		self.image = pygame.Surface((32,32))
@@ -236,12 +180,12 @@ class floorBlockLevel10(pygame.sprite.Sprite):
 		self.rect = self.image.get_rect(topleft=(x,y))
 
 	def update(self, scrollSpeed):
-		self.rect.y += scrollSpeed
+		self.rect.y -= scrollSpeed
 
-		if self.rect.y >= 900:
+		if self.rect.y <= -32:
 			self.kill()
 		
-class topFloorBlockLevel10(pygame.sprite.Sprite):
+class bottomFloorBlock(pygame.sprite.Sprite):
 	def __init__(self,x,y):
 		super().__init__()
 		self.image = pygame.Surface((32,32))
@@ -249,30 +193,14 @@ class topFloorBlockLevel10(pygame.sprite.Sprite):
 		self.rect = self.image.get_rect(topleft=(x,y))
 		self.stopScrolling = False
 	def update(self, scrollSpeed):
-		if self.rect.y <= 200:
-			self.rect.y += scrollSpeed
+		if self.rect.y >= 868 and not self.stopScrolling:
+			self.rect.y -= scrollSpeed
 		else:
 			self.stopScrolling = True
 	def getStopScrolling(self):
 		return self.stopScrolling
 
-class Level10Background(pygame.sprite.Sprite):
-	def __init__(self,x,y):
-		super().__init__()
-		self.image = level1Background
-		self.rect = self.image.get_rect(topleft=(x,y))
 
-	def update(self, scrollSpeed):
-		self.rect.y += scrollSpeed
-
-class Level1Background(pygame.sprite.Sprite):
-	def __init__(self,x,y):
-		super().__init__()
-		self.image = level1Background
-		self.rect = self.image.get_rect(topleft=(x,y))
-
-	def update(self, scrollSpeed):
-		self.rect.y -= scrollSpeed
 
 class PlayerTopView(pygame.sprite.Sprite):
 	def __init__(self,x,y):
@@ -281,8 +209,6 @@ class PlayerTopView(pygame.sprite.Sprite):
 		self.rect = self.image.get_rect(topleft=(x,y))
 		self.direction = 0
 		self.animationSpeed = 30
-		
-
 	def update(self,frame):
 		if self.direction == 1: #left
 			if frame%self.animationSpeed <= self.animationSpeed//2:
@@ -306,6 +232,16 @@ class PlayerTopView(pygame.sprite.Sprite):
 				self.image = minerTopView4
 		else:
 			self.image = minerTopViewIdle
+
+class Torch(pygame.sprite.Sprite):
+	def __init__(self,x,y):
+		super().__init__()
+		self.image = torchImage
+		self.rect = self.image.get_rect(topleft=(x,y))
+		self.collected = False
+	def update(self):
+		pass
+
 
 
 
@@ -389,33 +325,7 @@ class PlayerMinecart(pygame.sprite.Sprite):
 				self.isJumping = False
 				self.image = minecartPlayer
 
-class floorBlock(pygame.sprite.Sprite):
-	def __init__(self,x,y):
-		super().__init__()
-		self.image = pygame.Surface((32,32))
-		self.image.fill((0,0,0))
-		self.rect = self.image.get_rect(topleft=(x,y))
 
-	def update(self, scrollSpeed):
-		self.rect.y -= scrollSpeed
-
-		if self.rect.y <= -32:
-			self.kill()
-		
-class bottomFloorBlock(pygame.sprite.Sprite):
-	def __init__(self,x,y):
-		super().__init__()
-		self.image = pygame.Surface((32,32))
-		self.image.fill((0,0,0))
-		self.rect = self.image.get_rect(topleft=(x,y))
-		self.stopScrolling = False
-	def update(self, scrollSpeed):
-		if self.rect.y >= 868 and not self.stopScrolling:
-			self.rect.y -= scrollSpeed
-		else:
-			self.stopScrolling = True
-	def getStopScrolling(self):
-		return self.stopScrolling
 		
 
 class MinecartFinishBlock(pygame.sprite.Sprite):
@@ -500,7 +410,6 @@ class SidescrollUpRailBottomRight(pygame.sprite.Sprite):
 		self.rect.x -= scrollSpeed
 		if self.rect.x <= -32:
 			self.kill()
-
 class SidescrollDownRail(pygame.sprite.Sprite):
 	def __init__(self,x,y):
 		super().__init__()
@@ -528,7 +437,6 @@ class SidescrollDownRailTopRight(pygame.sprite.Sprite):
 		self.rect.x -= scrollSpeed
 		if self.rect.x <= -32:
 			self.kill()
-
 class SidescrollStraightRail(pygame.sprite.Sprite):
 	def __init__(self,x,y):
 		super().__init__()
@@ -538,7 +446,6 @@ class SidescrollStraightRail(pygame.sprite.Sprite):
 		self.rect.x -= scrollSpeed
 		if self.rect.x <= -32:
 			self.kill()
-
 class SidescrollBackground(pygame.sprite.Sprite):
 	def __init__(self,x,y):
 		super().__init__()
@@ -547,14 +454,6 @@ class SidescrollBackground(pygame.sprite.Sprite):
 	def update(self, scrollSpeed):
 		self.rect.x -= scrollSpeed
 
-class Torch(pygame.sprite.Sprite):
-	def __init__(self,x,y):
-		super().__init__()
-		self.image = torchImage
-		self.rect = self.image.get_rect(topleft=(x,y))
-		self.collected = False
-	def update(self):
-		pass
 
 class playerLevel3(pygame.sprite.Sprite):
 	def __init__(self,x,y):
@@ -562,7 +461,6 @@ class playerLevel3(pygame.sprite.Sprite):
 		self.image = minerIdle
 		self.rect = self.image.get_rect(topleft=(x,y))
 		self.direction = 0   #  0:idle   1:left   2:right
-
 	def update(self,frame):
 		if self.direction == 0:
 			self.image = minerIdle
@@ -577,18 +475,21 @@ class playerLevel3(pygame.sprite.Sprite):
 			else:
 				self.image = minerRightWalk2
 
+
+
+
+
+
+
 class Level6FloorBlock(pygame.sprite.Sprite):
 	def __init__(self,x,y):
 		super().__init__()
 		self.image = pygame.Surface((32,32))
 		self.image.fill((0,0,0))
 		self.rect = self.image.get_rect(topleft=(x,y))
-
 	def update(self, playerX, playerSpeed, direction):
 		self.rect.x += (playerSpeed-1)*direction
 		
-   
-
 class Level6Player(pygame.sprite.Sprite):
 	def __init__(self,x,y):
 		super().__init__()
@@ -596,7 +497,6 @@ class Level6Player(pygame.sprite.Sprite):
 		self.rect = pygame.Rect(x,y,16,26)
 		self.hitboxOffset = (8,6)
 		self.direction = 0   #  different than playerDirection variable and param
-
 	def update(self, playerDirection,frame):
 		if playerDirection == 1:
 			if frame <= 30:
@@ -611,7 +511,6 @@ class Level6Enemy1(pygame.sprite.Sprite):
 		super().__init__()
 		self.image = fish
 		self.rect = self.image.get_rect(topleft=(x,y))
-
 	def update(self,playerSpeed, direction):
 		if direction == 1:
 			self.rect.x -= 1
@@ -629,9 +528,7 @@ class Level6Enemy2(pygame.sprite.Sprite):
 		self.bottomRange = self.rect.y + 150
 		self.direction = 1
 		self.collidedWall = False
-
 	def update(self, playerX, playerSpeed, direction):
-
 		if self.rect.y == self.topRange:
 			self.direction = 1
 		if self.rect.y == self.bottomRange:
@@ -639,18 +536,14 @@ class Level6Enemy2(pygame.sprite.Sprite):
 		if self.collidedWall:
 			self.direction = self.direction * -1
 			self.collidedWall = False
-
 		self.rect.x += (playerSpeed-1)*direction
-
 		self.rect.y += self.direction
 
 class Level6Dynamite(pygame.sprite.Sprite):
 	def __init__(self,x,y):
 		super().__init__()
 		self.image = dynamite
-		
 		self.rect = self.image.get_rect(topleft=(x,y))
-
 	def update(self, playerX, playerSpeed, direction):
 		self.rect.x += (playerSpeed-1)*direction
 
@@ -659,7 +552,6 @@ class Level6Finish(pygame.sprite.Sprite):
 		super().__init__()
 		self.image = level3Finish
 		self.rect = self.image.get_rect(topleft=(x,y))
-
 	def update(self, playerX, playerSpeed, direction):
 		self.rect.x += (playerSpeed-1)*direction
 
@@ -679,8 +571,6 @@ class Level8Player(pygame.sprite.Sprite):
 		self.attackingTrack = 0
 		self.attackingCooldown = 0
 		self.animationSpeed = 15
-		
-
 	def update(self,frame):
 		if self.direction == 1:
 			if frame%self.animationSpeed <= self.animationSpeed//2:
@@ -712,8 +602,6 @@ class Level8Player(pygame.sprite.Sprite):
 					self.image = minerIdleJump
 			else:
 				self.image = minerIdle
-
-
 		if self.attacking:
 			self.attackingTrack += 1
 			if self.attackingTrack >= 30:
@@ -722,7 +610,6 @@ class Level8Player(pygame.sprite.Sprite):
 				self.attacking = False
 		if not self.attacking:
 			self.attackingCooldown += 1
-
 	def attack(self):
 		if not self.attacking and self.attackingCooldown >= 15:
 			self.attacking = True
@@ -735,7 +622,6 @@ class Level8Enemy1(pygame.sprite.Sprite):
 		self.rect = self.image.get_rect(topleft=(x,y))
 		self.direction = 0   #  different than playerDirection variable and param
 		self.animationSpeed	= 15
-
 	def update(self, playerPosX,frame):
 		if self.rect.x <= playerPosX:
 			if frame%self.animationSpeed <= self.animationSpeed//2:
@@ -757,7 +643,6 @@ class Level8Enemy2(pygame.sprite.Sprite):
 		self.rect = self.image.get_rect(topleft=(x,y))
 		self.direction = 0   #  different than playerDirection variable and param
 		self.animationSpeed	= 15
-
 	def update(self, playerPosX,frame):
 		if self.rect.x <= playerPosX:
 			if frame%self.animationSpeed <= self.animationSpeed//2:
@@ -778,7 +663,6 @@ class Level8Floor(pygame.sprite.Sprite):
 		self.image = pygame.Surface((820,300))
 		self.rect = self.image.get_rect(topleft=(x,y))
 		self.image.fill((0,0,0))
-
 	def update(self):
 		pass
 
@@ -794,7 +678,6 @@ class Level4FloorBlock(pygame.sprite.Sprite):
 		self.image = pygame.Surface((32,32))
 		self.image.fill((0,0,0))
 		self.rect = self.image.get_rect(topleft=(x,y))
-
 	def update(self, scrollSpeed,frame):
 		self.rect.x -= scrollSpeed
 
@@ -803,7 +686,6 @@ class Level4Finish(pygame.sprite.Sprite):
 		super().__init__()
 		self.image = pygame.Surface((32,32))
 		self.rect = self.image.get_rect(topleft=(x,y))
-	
 	def update(self, scrollSpeed,frame):
 		self.rect.x -= scrollSpeed
 
@@ -812,7 +694,6 @@ class Level4ExitSign(pygame.sprite.Sprite):
 		super().__init__()
 		self.image = level3Finish
 		self.rect = self.image.get_rect(topleft=(x,y))
-	
 	def update(self, scrollSpeed,frame):
 		self.rect.x -= scrollSpeed
 
@@ -827,18 +708,14 @@ class Level4Player(pygame.sprite.Sprite):
 		self.startingY = self.rect.y
 		self.isGrounded = False
 		self.animationSpeed = 15
-
 	def update(self,frame):
-
 		if self.rect.y <= self.startingY - 120:
 			self.isJumping = False
-
 		if self.direction == 0:
 			if self.isJumping:
 				self.image = minerIdleJump
 			else:
 				self.image = minerIdle
-
 		if self.direction == 1:
 			if self.isJumping:
 				self.image = minerLeftJump
@@ -859,7 +736,6 @@ class Level4Dynamite(pygame.sprite.Sprite):
 		super().__init__()
 		self.image = dynamite
 		self.rect = self.image.get_rect(topleft=(x,y))
-
 	def update(self, scrollSpeed,frame):
 		self.rect.x -= scrollSpeed
 
@@ -870,12 +746,9 @@ class Level4Enemy1(pygame.sprite.Sprite):
 		self.rect = self.image.get_rect(topleft=(x,y))
 		self.speed = 1
 		self.direction = 1
-
 	def update(self,scrollSpeed,frame):
 		self.rect.x -= scrollSpeed
-
 		self.rect.x += self.direction * self.speed
-
 		if self.direction == 1:
 			if frame <= 30:
 				self.image = ratRight2
@@ -897,16 +770,13 @@ class Level4Enemy2(pygame.sprite.Sprite):
 		self.xCor = 81
 		self.yInitial = y
 		self.endPath = False
-
 	def update(self, scrollSpeed,frame):
 		self.rect.x -= scrollSpeed
-
 		if self.spotted:
 			if frame <= 30:
 				self.image = bat2
 			else:
 				self.image = bat1
-
 			yCor = 0.001*self.xCor**2
 			self.rect.x -= 1
 			if self.xCor >= 0:
@@ -914,15 +784,12 @@ class Level4Enemy2(pygame.sprite.Sprite):
 			if self.xCor < 0:
 				self.rect.y -= yCor
 			self.xCor -= 1
-
 			if self.rect.y < self.yInitial-64:
 				self.spotted = False
 				self.endPath = True
 		if self.endPath:
 			self.rect.x -=1
 			self.rect.y -=1
-
-
 		if self.rect.y <= 0:
 			self.kill()
 
@@ -935,10 +802,8 @@ class Level4Enemy3(pygame.sprite.Sprite):
 		self.isJumping = False
 		self.startingY = self.rect.y
 		self.isGrounded = True
- 
 	def update(self, scrollSpeed,frame):
 		self.rect.x -= scrollSpeed
-
 		if self.isJumping:
 			self.image = skeleton2
 			self.rect.y -= 9
@@ -952,6 +817,102 @@ class BackgroundLevel4(pygame.sprite.Sprite):
 		super().__init__()
 		self.image = level4Background
 		self.rect = self.image.get_rect(topleft=(x,y))
- 
 	def update(self, scrollSpeed,frame):
 		self.rect.x -= scrollSpeed
+
+
+
+
+
+
+
+
+
+class PlayerLevel10(pygame.sprite.Sprite):
+	def __init__(self,x,y):
+		super().__init__()
+		self.image = minerIdle
+		self.rect = pygame.Rect(x,y,16,26)
+		self.hitboxOffset = (8,6)
+		self.direction = 0
+		self.isJumping = False
+		self.startingY = self.rect.y
+		self.isGrounded = False
+	def update(self,frame):
+		if self.rect.y <= self.startingY - 110:
+			self.isJumping = False
+		if self.direction == 0:
+			if self.isJumping:
+				self.image = minerIdleJump
+			else:
+				self.image = minerIdle
+		if self.direction == 1:
+			if self.isJumping:
+				self.image = minerLeftJump
+			elif frame <= 30:
+				self.image = minerLeftWalk
+			else:
+				self.image = minerLeftWalk2
+		if self.direction == 2:
+			if self.isJumping:
+				self.image = minerRightJump
+			elif frame <= 30:
+				self.image = minerRightWalk
+			else:
+				self.image = minerRightWalk2
+
+class LavaLevel10(pygame.sprite.Sprite):
+	def __init__(self,x,y):
+		super().__init__()
+		self.image = level10Lava
+		self.rect = self.image.get_rect(topleft=(x,y))
+		self.topOut = False
+	def update(self, scrollSpeed):
+		if self.rect.y >= 700 and not self.topOut:
+			self.rect.y -= scrollSpeed
+		if self.topOut and self.rect.y >= 240:
+			self.rect.y -= scrollSpeed*2
+
+class FinishBlockLevel10(pygame.sprite.Sprite):
+	def __init__(self,x,y):
+		super().__init__()
+		self.image = level3Finish
+		self.rect = self.image.get_rect(topleft=(x,y))
+	def update(self, scrollSpeed):
+		if self.rect.y <= 75:
+			self.rect.y += scrollSpeed
+
+class floorBlockLevel10(pygame.sprite.Sprite):
+	def __init__(self,x,y):
+		super().__init__()
+		self.image = pygame.Surface((32,32))
+		self.image.fill((0,0,0))
+		self.rect = self.image.get_rect(topleft=(x,y))
+	def update(self, scrollSpeed):
+		self.rect.y += scrollSpeed
+
+		if self.rect.y >= 900:
+			self.kill()
+		
+class topFloorBlockLevel10(pygame.sprite.Sprite):
+	def __init__(self,x,y):
+		super().__init__()
+		self.image = pygame.Surface((32,32))
+		self.image.fill((0,0,0))
+		self.rect = self.image.get_rect(topleft=(x,y))
+		self.stopScrolling = False
+	def update(self, scrollSpeed):
+		if self.rect.y <= 200:
+			self.rect.y += scrollSpeed
+		else:
+			self.stopScrolling = True
+	def getStopScrolling(self):
+		return self.stopScrolling
+
+class Level10Background(pygame.sprite.Sprite):
+	def __init__(self,x,y):
+		super().__init__()
+		self.image = level1Background
+		self.rect = self.image.get_rect(topleft=(x,y))
+	def update(self, scrollSpeed):
+		self.rect.y += scrollSpeed
