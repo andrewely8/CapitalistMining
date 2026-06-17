@@ -2,7 +2,7 @@ This is a game created with the pygame python library. This game combines an idl
 
 To play the game, visit the live website:
 
-https://andrewely8.github.io/CapitalistMining/build/web/index.html
+https://andrewely8.github.io/CapitalistMining/CapitalistMining/build/web/index.html
 
 The python code is ran in the browser using the pygbag library.
 
@@ -25,7 +25,7 @@ To run locally,
 3. Run the game (main.py)
 
    python main.py
-chrome
+
 
 
 
